@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"time"
 
+	"git.vshn.net/syn/steward/pkg/flux"
+
 	"git.vshn.net/syn/steward/pkg/api"
 	log "github.com/sirupsen/logrus"
 )
@@ -38,10 +40,12 @@ func (a *Agent) Run(ctx context.Context) error {
 }
 
 func (a *Agent) registerCluster(ctx context.Context, apiClient *api.Client) {
-	git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution)
-	if err != nil {
+	if git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution); err != nil {
 		log.Error(err)
 	} else {
 		log.Debugf("%+v", git)
+		if err := flux.ApplyFlux(ctx, git); err != nil {
+			log.Error(err)
+		}
 	}
 }
