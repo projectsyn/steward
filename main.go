@@ -13,11 +13,16 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+// Version is the steward version (set during build)
+var Version = "unreleased"
+
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
+	logrus.Info("Starting SYN cluster agent 🕵️")
+	logrus.Infof("Version %s", Version)
 	app := kingpin.New("steward", "Steward makes your Kubernetes cluster SYN managed. 🎉")
 	app.DefaultEnvars()
-	app.Version("v0.0.1")
+	app.Version(Version)
 	ctx, cancel := context.WithCancel(context.Background())
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, syscall.SIGTERM)

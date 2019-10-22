@@ -10,7 +10,11 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -v -o steward .
+ARG version=v0.0.1
+
+RUN go build -v \
+      -ldflags "-X main.Version=v0.0.1" \
+      -o steward .
 
 RUN update-ca-certificates
 
