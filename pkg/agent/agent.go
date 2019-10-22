@@ -25,27 +25,23 @@ func (a *Agent) Run(ctx context.Context) error {
 	apiClient.Token = a.Token
 	ticker := time.NewTicker(1 * time.Minute)
 
-	doUpdate := func() error {
-		git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution)
-		if err != nil {
-			return err
-		}
-		log.Debugf("%+v", git)
-		return nil
-	}
-
-	if err := doUpdate(); err != nil {
-		return err
-	}
+	a.registerCluster(ctx, apiClient)
 
 	for {
 		select {
 		case <-ticker.C:
-			if err := doUpdate(); err != nil {
-				return err
-			}
+			a.registerCluster(ctx, apiClient)
 		case <-ctx.Done():
 			return nil
 		}
+	}
+}
+
+func (a *Agent) registerCluster(ctx context.Context, apiClient *api.Client) {
+	git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution)
+	if err != nil {
+		log.Error(err)
+	} else {
+		log.Debugf("%+v", git)
 	}
 }
