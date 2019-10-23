@@ -41,8 +41,11 @@ type registerClusterResponse struct {
 
 // GitInfo represents information about a git repository
 type GitInfo struct {
-	HostName string `json:"host_name"`
-	RepoName string `json:"repo_name"`
+	URL           string              `json:"url"`
+	HostName      string              `json:"host_name"`
+	RepoName      string              `json:"repo_name"`
+	RepoNamespace string              `json:"repo_namespace"`
+	HostKeys      []map[string]string `json:"host_keys"`
 }
 
 // RegisterCluster registers a new cluster to the SYN API
