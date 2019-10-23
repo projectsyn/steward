@@ -6,18 +6,20 @@ ENV CGO_ENABLED=0 \
     GOOS=linux
 
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download \
+ && update-ca-certificates
 
 COPY . .
 
-RUN go build -v -o steward .
+ARG version=v0.0.1
 
-RUN update-ca-certificates
+RUN go build -v \
+      -ldflags "-X main.Version=${version}" \
+      -o steward .
 
 FROM scratch
 
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-
 COPY --from=build /app/steward /usr/local/bin/
 
 USER 1001

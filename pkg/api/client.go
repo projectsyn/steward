@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // Client for the SYN API
@@ -43,8 +41,11 @@ type registerClusterResponse struct {
 
 // GitInfo represents information about a git repository
 type GitInfo struct {
-	HostName string `json:"host_name"`
-	RepoName string `json:"repo_name"`
+	URL           string              `json:"url"`
+	HostName      string              `json:"host_name"`
+	RepoName      string              `json:"repo_name"`
+	RepoNamespace string              `json:"repo_namespace"`
+	HostKeys      []map[string]string `json:"host_keys"`
 }
 
 // RegisterCluster registers a new cluster to the SYN API
@@ -61,7 +62,6 @@ func (c *Client) RegisterCluster(ctx context.Context, cloudType, cloudRegion, di
 		return nil, err
 	}
 	resp := registerClusterResponse{}
-	log.Debugf("Make request to %s", req.URL.String())
 	_, err = c.do(req, &resp)
 	if err != nil {
 		return nil, err

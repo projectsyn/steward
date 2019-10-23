@@ -5,8 +5,10 @@ import (
 	"net/url"
 	"time"
 
+	"git.vshn.net/syn/steward/pkg/flux"
+
 	"git.vshn.net/syn/steward/pkg/api"
-	log "github.com/sirupsen/logrus"
+	"k8s.io/klog"
 )
 
 // Agent configures the cluster agent
@@ -25,27 +27,24 @@ func (a *Agent) Run(ctx context.Context) error {
 	apiClient.Token = a.Token
 	ticker := time.NewTicker(1 * time.Minute)
 
-	doUpdate := func() error {
-		git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution)
-		if err != nil {
-			return err
-		}
-		log.Debugf("%+v", git)
-		return nil
-	}
-
-	if err := doUpdate(); err != nil {
-		return err
-	}
+	a.registerCluster(ctx, apiClient)
 
 	for {
 		select {
 		case <-ticker.C:
-			if err := doUpdate(); err != nil {
-				return err
-			}
+			a.registerCluster(ctx, apiClient)
 		case <-ctx.Done():
 			return nil
+		}
+	}
+}
+
+func (a *Agent) registerCluster(ctx context.Context, apiClient *api.Client) {
+	if git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution); err != nil {
+		klog.Error(err)
+	} else {
+		if err := flux.ApplyFlux(ctx, git); err != nil {
+			klog.Error(err)
 		}
 	}
 }
