@@ -4,13 +4,12 @@ import (
 	"context"
 	"os"
 
-	log "github.com/sirupsen/logrus"
-
 	corev1 "k8s.io/api/core/v1"
 
 	"git.vshn.net/syn/steward/pkg/api"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -36,13 +35,13 @@ func ApplyFlux(ctx context.Context, gitInfo *api.GitInfo) error {
 	if len(pods.Items) > 0 {
 		for _, pod := range pods.Items {
 			if pod.Status.Phase == corev1.PodRunning {
-				log.Infof("Found running flux pod: %v/%v", pod.Namespace, pod.Name)
+				klog.Infof("Found running flux pod: %v/%v", pod.Namespace, pod.Name)
 				return nil
 			}
-			log.Warnf("Found non running flux pod: %v/%v (%v)", pod.Namespace, pod.Name, pod.Status.Phase)
+			klog.Warningf("Found non running flux pod: %v/%v (%v)", pod.Namespace, pod.Name, pod.Status.Phase)
 		}
 	}
-	log.Info("No running flux pod found, bootstrapping now")
+	klog.Info("No running flux pod found, bootstrapping now")
 	return bootstrapFlux(ctx, clientset)
 }
 

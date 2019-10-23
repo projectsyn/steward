@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // Client for the SYN API
@@ -61,7 +59,6 @@ func (c *Client) RegisterCluster(ctx context.Context, cloudType, cloudRegion, di
 		return nil, err
 	}
 	resp := registerClusterResponse{}
-	log.Debugf("Make request to %s", req.URL.String())
 	_, err = c.do(req, &resp)
 	if err != nil {
 		return nil, err

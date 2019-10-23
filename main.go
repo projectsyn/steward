@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"flag"
 	"os"
 	"os/signal"
 	"syscall"
 
-	log "github.com/sirupsen/logrus"
+	"k8s.io/klog"
 
 	"git.vshn.net/syn/steward/pkg/agent"
 
@@ -17,9 +18,11 @@ import (
 var Version = "unreleased"
 
 func main() {
-	log.SetLevel(log.DebugLevel)
-	log.Info("Starting SYN cluster agent 🕵️")
-	log.Infof("Version %s", Version)
+	klog.InitFlags(nil)
+	flag.Set("logtostderr", "true")
+	flag.Set("v", "3")
+	klog.Info("Starting SYN cluster agent 🕵️")
+	klog.Infof("Version %s", Version)
 	app := kingpin.New("steward", "Steward makes your Kubernetes cluster SYN managed. 🎉")
 	app.DefaultEnvars()
 	app.Version(Version)
@@ -46,7 +49,7 @@ func receiveSignal(signalCh chan os.Signal, cancel context.CancelFunc) {
 	for {
 		select {
 		case sig := <-signalCh:
-			log.Debugf("Received signal '%v'", sig)
+			klog.V(3).Infof("Received signal '%v'", sig)
 			cancel()
 		}
 	}

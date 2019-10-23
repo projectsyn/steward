@@ -8,7 +8,7 @@ import (
 	"git.vshn.net/syn/steward/pkg/flux"
 
 	"git.vshn.net/syn/steward/pkg/api"
-	log "github.com/sirupsen/logrus"
+	"k8s.io/klog"
 )
 
 // Agent configures the cluster agent
@@ -41,11 +41,11 @@ func (a *Agent) Run(ctx context.Context) error {
 
 func (a *Agent) registerCluster(ctx context.Context, apiClient *api.Client) {
 	if git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution); err != nil {
-		log.Error(err)
+		klog.Error(err)
 	} else {
-		log.Debugf("%+v", git)
+		klog.V(3).Infof("%+v", git)
 		if err := flux.ApplyFlux(ctx, git); err != nil {
-			log.Error(err)
+			klog.Error(err)
 		}
 	}
 }
