@@ -43,7 +43,7 @@ func (a *Agent) registerCluster(ctx context.Context, apiClient *api.Client) {
 	if git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution); err != nil {
 		klog.Error(err)
 	} else {
-		if err := flux.ApplyFlux(ctx, git); err != nil {
+		if err := flux.ApplyFlux(ctx, git, apiClient); err != nil {
 			klog.Error(err)
 		}
 	}
