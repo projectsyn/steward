@@ -2,45 +2,27 @@ package flux
 
 import (
 	"context"
-	"os"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/rest"
 
 	"git.vshn.net/syn/steward/pkg/api"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	synNamespace = "syn"
-	fluxImage    = "docker.io/fluxcd/flux:1.15.0"
-	fluxLabels   = map[string]string{"app": "flux", "app.kubernetes.io/managed-by": "syn-agent"}
+	synNamespace         = "syn"
+	fluxImage            = "docker.io/fluxcd/flux:1.15.0"
+	fluxLabels           = map[string]string{"app": "flux", "app.kubernetes.io/managed-by": "syn-agent"}
+	fluxSSHSecretName    = "flux-ssh-key"
+	fluxSSHPublicKey     = "public_key"
+	fluxSSHConfigMapName = "flux-ssh-config"
 )
 
 // ApplyFlux reconciles the flux deployment
-func ApplyFlux(ctx context.Context, gitInfo *api.GitInfo, apiClient *api.Client) error {
-	kubecfg := os.Getenv("KUBECONFIG")
-	var config *rest.Config
-	var err error
-	if kubecfg == "" {
-		config, err = rest.InClusterConfig()
-	} else {
-		config, err = clientcmd.BuildConfigFromFlags("", kubecfg)
-	}
-	if err != nil {
-		return err
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return err
-	}
-
+func ApplyFlux(ctx context.Context, clientset *kubernetes.Clientset, apiClient *api.Client, gitInfo *api.GitInfo) error {
 	pods, err := clientset.CoreV1().Pods(synNamespace).List(metav1.ListOptions{
 		LabelSelector: "app=flux",
 	})
@@ -57,31 +39,17 @@ func ApplyFlux(ctx context.Context, gitInfo *api.GitInfo, apiClient *api.Client)
 		}
 	}
 	klog.Info("No running flux pod found, bootstrapping now")
-	return bootstrapFlux(ctx, clientset, gitInfo, apiClient)
+	return bootstrapFlux(ctx, clientset, apiClient, gitInfo)
 }
 
-func bootstrapFlux(ctx context.Context, clientset *kubernetes.Clientset, gitInfo *api.GitInfo, apiClient *api.Client) error {
-	_, err := clientset.CoreV1().Secrets(synNamespace).Get("flux-git-deploy", metav1.GetOptions{})
-	if err != nil {
-		if errors.IsNotFound(err) {
-			klog.Info("No SSH secret found, generate new key")
-			pubKey, err := createSSHSecret(clientset)
-			if err != nil {
-				return err
-			}
-			err = apiClient.RegisterPublicKey(ctx, pubKey)
-			if err != nil {
-				klog.Error(err)
-			}
-		} else {
-			return err
-		}
-	}
-
-	err = createKnownHostsConfigMap(gitInfo, clientset)
+func bootstrapFlux(ctx context.Context, clientset *kubernetes.Clientset, apiClient *api.Client, gitInfo *api.GitInfo) error {
+	err := createKnownHostsConfigMap(gitInfo, clientset)
 	if err != nil {
 		return err
 	}
-
+	err = createRBAC(clientset)
+	if err != nil {
+		return err
+	}
 	return createFluxDeployment(gitInfo, clientset)
 }
