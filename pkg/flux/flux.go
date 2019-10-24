@@ -2,10 +2,11 @@ package flux
 
 import (
 	"context"
+	"os"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/rest"
-	"os"
 
 	"git.vshn.net/syn/steward/pkg/api"
 	"k8s.io/client-go/kubernetes"
@@ -22,7 +23,7 @@ var (
 )
 
 // ApplyFlux reconciles the flux deployment
-func ApplyFlux(ctx context.Context, gitInfo *api.GitInfo) error {
+func ApplyFlux(ctx context.Context, gitInfo *api.GitInfo, apiClient *api.Client) error {
 	kubecfg := os.Getenv("KUBECONFIG")
 	var config *rest.Config
 	var err error
@@ -56,17 +57,21 @@ func ApplyFlux(ctx context.Context, gitInfo *api.GitInfo) error {
 		}
 	}
 	klog.Info("No running flux pod found, bootstrapping now")
-	return bootstrapFlux(ctx, clientset, gitInfo)
+	return bootstrapFlux(ctx, clientset, gitInfo, apiClient)
 }
 
-func bootstrapFlux(ctx context.Context, clientset *kubernetes.Clientset, gitInfo *api.GitInfo) error {
+func bootstrapFlux(ctx context.Context, clientset *kubernetes.Clientset, gitInfo *api.GitInfo, apiClient *api.Client) error {
 	_, err := clientset.CoreV1().Secrets(synNamespace).Get("flux-git-deploy", metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			klog.Info("No SSH secret found, generate new key")
-			err = createSSHSecret(clientset)
+			pubKey, err := createSSHSecret(clientset)
 			if err != nil {
 				return err
+			}
+			err = apiClient.RegisterPublicKey(ctx, pubKey)
+			if err != nil {
+				klog.Error(err)
 			}
 		} else {
 			return err

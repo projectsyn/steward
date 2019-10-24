@@ -2,12 +2,13 @@ package flux
 
 import (
 	"fmt"
+	"strings"
+
 	"git.vshn.net/syn/steward/pkg/api"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
-	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -37,8 +38,9 @@ func createKnownHostsConfigMap(gitInfo *api.GitInfo, clientset *kubernetes.Clien
 			_, err = clientset.CoreV1().ConfigMaps(synNamespace).Update(fluxConfigMap)
 		}
 		return err
-	} else {
-		klog.Infof("Created new KnownHosts ConfigMap")
 	}
+
+	klog.Infof("Created new KnownHosts ConfigMap")
+
 	return nil
 }

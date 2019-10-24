@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+
 	"golang.org/x/crypto/ssh"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -13,10 +14,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createSSHSecret(clientset *kubernetes.Clientset) error {
+func createSSHSecret(clientset *kubernetes.Clientset) (string, error) {
 	publicKey, privateKey, err := generateSSHKey()
 	if err != nil {
-		return err
+		return publicKey, err
 	}
 	klog.Infof("Public key: %v", publicKey)
 	fluxSecret := &corev1.Secret{
@@ -31,9 +32,9 @@ func createSSHSecret(clientset *kubernetes.Clientset) error {
 	}
 	_, err = clientset.CoreV1().Secrets(synNamespace).Create(fluxSecret)
 	if err != nil {
-		return err
+		return publicKey, err
 	}
-	return nil
+	return publicKey, nil
 }
 
 func generateSSHKey() (string, string, error) {
