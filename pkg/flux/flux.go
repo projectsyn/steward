@@ -13,9 +13,12 @@ import (
 )
 
 var (
-	synNamespace         = "syn"
-	fluxImage            = "docker.io/fluxcd/flux:1.15.0"
-	fluxLabels           = map[string]string{"app": "flux", "app.kubernetes.io/managed-by": "syn-agent"}
+	synNamespace = "syn"
+	fluxImage    = "docker.io/fluxcd/flux:1.15.0"
+	fluxLabels   = map[string]string{
+		"app":     "flux",
+		"release": "flux",
+	}
 	fluxSSHSecretName    = "flux-ssh-key"
 	fluxSSHPublicKey     = "public_key"
 	fluxSSHConfigMapName = "flux-ssh-config"
