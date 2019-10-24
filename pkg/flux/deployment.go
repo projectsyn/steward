@@ -31,12 +31,12 @@ func createFluxDeployment(gitInfo *api.GitInfo, clientset *kubernetes.Clientset)
 					Labels: fluxLabels,
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: "steward",
+					ServiceAccountName: "flux",
 					Volumes: []corev1.Volume{{
-						Name: "git-key",
+						Name: "ssh-key",
 						VolumeSource: corev1.VolumeSource{
 							Secret: &corev1.SecretVolumeSource{
-								SecretName:  "flux-git-deploy",
+								SecretName:  fluxSSHSecretName,
 								DefaultMode: &mode,
 							},
 						},
@@ -45,7 +45,7 @@ func createFluxDeployment(gitInfo *api.GitInfo, clientset *kubernetes.Clientset)
 						VolumeSource: corev1.VolumeSource{
 							ConfigMap: &corev1.ConfigMapVolumeSource{
 								LocalObjectReference: corev1.LocalObjectReference{
-									Name: "flux-ssh-config",
+									Name: fluxSSHConfigMapName,
 								},
 							},
 						},
@@ -58,9 +58,11 @@ func createFluxDeployment(gitInfo *api.GitInfo, clientset *kubernetes.Clientset)
 							"--git-readonly",
 							"--sync-state=secret",
 							"--sync-garbage-collection",
+							"--sync-interval=1m",
 							"--memcached-service=",
 							"--automation-interval=24h",
 							"--registry-exclude-image=*",
+							"--k8s-secret-name", fluxSSHSecretName,
 						},
 						Ports: []corev1.ContainerPort{{
 							Name:          "http",
@@ -71,7 +73,7 @@ func createFluxDeployment(gitInfo *api.GitInfo, clientset *kubernetes.Clientset)
 							Value: "/root/.kubectl/config",
 						}},
 						VolumeMounts: []corev1.VolumeMount{{
-							Name:      "git-key",
+							Name:      "ssh-key",
 							ReadOnly:  true,
 							MountPath: "/etc/fluxd/ssh",
 						}, {

@@ -24,7 +24,7 @@ func createKnownHostsConfigMap(gitInfo *api.GitInfo, clientset *kubernetes.Clien
 	}
 	fluxConfigMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   "flux-ssh-config",
+			Name:   fluxSSHConfigMapName,
 			Labels: fluxLabels,
 		},
 		Data: map[string]string{

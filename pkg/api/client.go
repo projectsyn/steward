@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-
-	"k8s.io/klog"
 )
 
 // Client for the SYN API
@@ -35,18 +33,10 @@ type registerClusterRequest struct {
 	Distribution string `json:"distribution,omitempty"`
 	CloudType    string `json:"cloud_type,omitempty"`
 	CloudRegion  string `json:"cloud_region,omitempty"`
+	PublicKey    string `json:"public_key,omitempty"`
 }
 type registerClusterResponse struct {
 	Git *GitInfo `json:"git"`
-}
-
-type registerPublicKeyRequest struct {
-	Token     string `json:"token,omitempty"`
-	PublicKey string `json:"public_key,omitempty"`
-}
-type registerPublicKeyResponse struct {
-	Status  string `json:"status,omitempty"`
-	Message string `json:"message,omitempty"`
 }
 
 // GitInfo represents information about a git repository
@@ -59,13 +49,14 @@ type GitInfo struct {
 }
 
 // RegisterCluster registers a new cluster to the SYN API
-func (c *Client) RegisterCluster(ctx context.Context, cloudType, cloudRegion, distribution string) (*GitInfo, error) {
+func (c *Client) RegisterCluster(ctx context.Context, cloudType, cloudRegion, distribution, publicKey string) (*GitInfo, error) {
 
 	cluster := registerClusterRequest{
 		Token:        c.Token,
 		CloudType:    cloudType,
 		CloudRegion:  cloudRegion,
 		Distribution: distribution,
+		PublicKey:    publicKey,
 	}
 	req, err := c.newRequest(ctx, "POST", "/clusters/register", cluster)
 	if err != nil {
@@ -78,22 +69,6 @@ func (c *Client) RegisterCluster(ctx context.Context, cloudType, cloudRegion, di
 	}
 
 	return resp.Git, nil
-}
-
-// RegisterPublicKey registers the public key of flux
-func (c *Client) RegisterPublicKey(ctx context.Context, publicKey string) error {
-	pubKeyReq := &registerPublicKeyRequest{
-		Token:     c.Token,
-		PublicKey: publicKey,
-	}
-	req, err := c.newRequest(ctx, "POST", "/clusters/pubkey", pubKeyReq)
-	if err != nil {
-		return err
-	}
-	resp := &registerPublicKeyResponse{}
-	_, err = c.do(req, resp)
-	klog.Info(resp.Message)
-	return err
 }
 
 func (c *Client) do(req *http.Request, v interface{}) (*http.Response, error) {
