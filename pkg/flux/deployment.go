@@ -56,11 +56,11 @@ func createFluxDeployment(gitInfo *api.GitInfo, clientset *kubernetes.Clientset)
 						Args: []string{
 							"--git-url", gitInfo.URL,
 							"--git-readonly",
+							"--git-poll-interval=1m",
+							"--sync-interval=1m",
 							"--sync-state=secret",
 							"--sync-garbage-collection",
-							"--sync-interval=1m",
 							"--memcached-service=",
-							"--automation-interval=24h",
 							"--registry-exclude-image=*",
 							"--k8s-secret-name", fluxSSHSecretName,
 						},
