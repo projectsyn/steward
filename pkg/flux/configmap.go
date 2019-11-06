@@ -13,7 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createKnownHostsConfigMap(gitInfo *api.GitInfo, clientset *kubernetes.Clientset) error {
+func createKnownHostsConfigMap(gitInfo *api.GitInfo, clientset *kubernetes.Clientset, namespace string) error {
 	var knownHosts strings.Builder
 	for _, key := range gitInfo.HostKeys {
 		for k, v := range key {
@@ -31,11 +31,11 @@ func createKnownHostsConfigMap(gitInfo *api.GitInfo, clientset *kubernetes.Clien
 			"known_hosts": knownHosts.String(),
 		},
 	}
-	_, err := clientset.CoreV1().ConfigMaps(synNamespace).Create(fluxConfigMap)
+	_, err := clientset.CoreV1().ConfigMaps(namespace).Create(fluxConfigMap)
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
 			klog.Info("Update existing KnownHosts ConfigMap")
-			_, err = clientset.CoreV1().ConfigMaps(synNamespace).Update(fluxConfigMap)
+			_, err = clientset.CoreV1().ConfigMaps(namespace).Update(fluxConfigMap)
 		}
 		return err
 	}

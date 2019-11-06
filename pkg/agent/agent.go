@@ -21,6 +21,8 @@ type Agent struct {
 	CloudType    string
 	CloudRegion  string
 	Distribution string
+	Namespace    string
+	FluxImage    string
 }
 
 // Run starts the cluster agent
@@ -61,7 +63,7 @@ func (a *Agent) Run(ctx context.Context) error {
 }
 
 func (a *Agent) registerCluster(ctx context.Context, clientset *kubernetes.Clientset, apiClient *api.Client) {
-	publicKey, err := flux.CreateSSHSecret(clientset)
+	publicKey, err := flux.CreateSSHSecret(clientset, a.Namespace)
 	if err != nil {
 		klog.Errorf("Error creating secret: %v", err)
 		return
@@ -69,7 +71,7 @@ func (a *Agent) registerCluster(ctx context.Context, clientset *kubernetes.Clien
 	if git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution, publicKey); err != nil {
 		klog.Error(err)
 	} else {
-		if err := flux.ApplyFlux(ctx, clientset, apiClient, git); err != nil {
+		if err := flux.ApplyFlux(ctx, clientset, a.Namespace, a.FluxImage, apiClient, git); err != nil {
 			klog.Error(err)
 		}
 	}

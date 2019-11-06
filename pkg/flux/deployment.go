@@ -12,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createFluxDeployment(gitInfo *api.GitInfo, clientset *kubernetes.Clientset) error {
+func createFluxDeployment(gitInfo *api.GitInfo, clientset *kubernetes.Clientset, namespace, fluxImage string) error {
 	mode := int32(0400)
 	fluxDeployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -92,7 +92,7 @@ func createFluxDeployment(gitInfo *api.GitInfo, clientset *kubernetes.Clientset)
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
 			klog.Info("Update existing flux Deployment")
-			_, err = clientset.AppsV1().Deployments(synNamespace).Update(fluxDeployment)
+			_, err = clientset.AppsV1().Deployments(namespace).Update(fluxDeployment)
 		}
 	} else {
 		klog.Info("Created new flux Deployment")

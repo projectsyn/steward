@@ -17,8 +17,8 @@ import (
 )
 
 // CreateSSHSecret creates a new SSH key if it doesn't exist already and returns the public key
-func CreateSSHSecret(clientset *kubernetes.Clientset) (string, error) {
-	secret, err := clientset.CoreV1().Secrets(synNamespace).Get(fluxSSHSecretName, metav1.GetOptions{})
+func CreateSSHSecret(clientset *kubernetes.Clientset, namespace string) (string, error) {
+	secret, err := clientset.CoreV1().Secrets(namespace).Get(fluxSSHSecretName, metav1.GetOptions{})
 	if err == nil {
 		publicKey := secret.Data[fluxSSHPublicKey]
 		return string(publicKey), nil
@@ -44,7 +44,7 @@ func CreateSSHSecret(clientset *kubernetes.Clientset) (string, error) {
 			fluxSSHPublicKey: []byte(publicKey),
 		},
 	}
-	_, err = clientset.CoreV1().Secrets(synNamespace).Create(fluxSecret)
+	_, err = clientset.CoreV1().Secrets(namespace).Create(fluxSecret)
 	if err != nil {
 		return publicKey, err
 	}
