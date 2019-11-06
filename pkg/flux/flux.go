@@ -13,9 +13,7 @@ import (
 )
 
 var (
-	synNamespace = "syn"
-	fluxImage    = "docker.io/fluxcd/flux:1.15.0"
-	fluxLabels   = map[string]string{
+	fluxLabels = map[string]string{
 		"app":     "flux",
 		"release": "flux",
 	}
@@ -25,8 +23,8 @@ var (
 )
 
 // ApplyFlux reconciles the flux deployment
-func ApplyFlux(ctx context.Context, clientset *kubernetes.Clientset, apiClient *api.Client, gitInfo *api.GitInfo) error {
-	pods, err := clientset.CoreV1().Pods(synNamespace).List(metav1.ListOptions{
+func ApplyFlux(ctx context.Context, clientset *kubernetes.Clientset, namespace, fluxImage string, apiClient *api.Client, gitInfo *api.GitInfo) error {
+	pods, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{
 		LabelSelector: "app=flux",
 	})
 	if err != nil {
@@ -42,17 +40,17 @@ func ApplyFlux(ctx context.Context, clientset *kubernetes.Clientset, apiClient *
 		}
 	}
 	klog.Info("No running flux pod found, bootstrapping now")
-	return bootstrapFlux(ctx, clientset, apiClient, gitInfo)
+	return bootstrapFlux(ctx, clientset, namespace, fluxImage, apiClient, gitInfo)
 }
 
-func bootstrapFlux(ctx context.Context, clientset *kubernetes.Clientset, apiClient *api.Client, gitInfo *api.GitInfo) error {
-	err := createKnownHostsConfigMap(gitInfo, clientset)
+func bootstrapFlux(ctx context.Context, clientset *kubernetes.Clientset, namespace, fluxImage string, apiClient *api.Client, gitInfo *api.GitInfo) error {
+	err := createKnownHostsConfigMap(gitInfo, clientset, namespace)
 	if err != nil {
 		return err
 	}
-	err = createRBAC(clientset)
+	err = createRBAC(clientset, namespace)
 	if err != nil {
 		return err
 	}
-	return createFluxDeployment(gitInfo, clientset)
+	return createFluxDeployment(gitInfo, clientset, namespace, fluxImage)
 }
