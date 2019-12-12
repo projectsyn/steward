@@ -14,7 +14,12 @@ The cluster agent - working together with the [lieutenant-api](https://github.co
    KUBECONFIG=/path/to/config go run main.go --api http://localhost:5000 --token someToken
    ```
 
-1. Start hacking on the service
+1. Start hacking on the agent
+
+## Argo CD Bootstrapping
+
+Argo CD is bootstrapped (repo-server, app-controller, server) when no existing deployments are found. The required CRDs (Application, AppProject) are compiled into the binary using [statik](https://github.com/rakyll/statik).
+To update them, download the [latest manifests](https://github.com/argoproj/argo-cd/tree/master/manifests/crds) and put them in `./manifests/`. Upon running `make generate`, the manifests will be embedded into the resulting binary.
 
 ## Release
 

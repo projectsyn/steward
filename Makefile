@@ -1,3 +1,10 @@
+# Project parameters
+BINARY_NAME ?= steward
+
+VERSION ?= $(shell git describe --tags --always --dirty --match=v* || (echo "command failed $$?"; exit 1))
+
+IMAGE_NAME ?= docker.io/vshn/$(BINARY_NAME):$(VERSION)
+
 # Antora variables
 pages   := $(shell find . -type f -name '*.adoc')
 web_dir := ./_antora
@@ -10,31 +17,29 @@ antora_opts ?= --cache-dir=.cache/antora
 
 vale_cmd ?= $(docker_cmd) run $(docker_opts) --volume "$${PWD}"/docs/modules/ROOT/pages:/pages vshn/vale:1.1 --minAlertLevel=error /pages
 
-
-# Project parameters
-BINARY_NAME=steward
-
 # Go parameters
-GOCMD=go
-GOBUILD=$(GOCMD) build
-GOCLEAN=$(GOCMD) clean
-GOTEST=$(GOCMD) test
-GOGET=$(GOCMD) get
-VERSION=$(shell git describe --tags --always --dirty --match=v* || (echo "command failed $$?"; exit 1))
-IMAGE_NAME=docker.io/vshn/$(BINARY_NAME):$(VERSION)
+GOCMD   ?= go
+GOBUILD ?= $(GOCMD) build
+GOCLEAN ?= $(GOCMD) clean
+GOTEST  ?= $(GOCMD) test
+GOGET   ?= $(GOCMD) get
 
 .PHONY: all
 all: test build docs
 
+.PHONY: generate
+generate:
+	go generate main.go
+
 .PHONY: build
-build:
+build: generate
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -v \
 		-o $(BINARY_NAME) \
 		-ldflags "-X main.Version=$(VERSION)"
 	@echo built '$(VERSION)'
 
 .PHONY: test
-test:
+test: generate
 	$(GOTEST) -v ./...
 
 .PHONY: clean

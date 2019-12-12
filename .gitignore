@@ -9,6 +9,7 @@ _antora
 *.so
 *.dylib
 steward
+__debug_bin
 
 # Test binary, built with `go test -c`
 *.test
