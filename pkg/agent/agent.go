@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"git.vshn.net/syn/steward/pkg/api"
-	"git.vshn.net/syn/steward/pkg/flux"
+	"github.com/projectsyn/steward/pkg/api"
+	"github.com/projectsyn/steward/pkg/flux"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"

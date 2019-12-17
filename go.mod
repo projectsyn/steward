@@ -1,4 +1,4 @@
-module git.vshn.net/syn/steward
+module github.com/projectsyn/steward
 
 go 1.13
 
