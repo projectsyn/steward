@@ -9,7 +9,7 @@ import (
 
 	"k8s.io/klog"
 
-	"git.vshn.net/syn/steward/pkg/agent"
+	"github.com/projectsyn/steward/pkg/agent"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 )

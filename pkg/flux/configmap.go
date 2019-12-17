@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"git.vshn.net/syn/steward/pkg/api"
+	"github.com/projectsyn/steward/pkg/api"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"

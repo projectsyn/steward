@@ -5,7 +5,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"git.vshn.net/syn/steward/pkg/api"
+	"github.com/projectsyn/steward/pkg/api"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
 
