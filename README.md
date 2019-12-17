@@ -11,7 +11,7 @@ The cluster agent - working together with the [lieutenant-api](https://github.co
 1. Run the agent against a locally deployed SYNventory
 
    ```console
-   go run main.go --api http://localhost:5000 --token someToken
+   KUBECONFIG=/path/to/config go run main.go --api http://localhost:5000 --token someToken
    ```
 
 1. Start hacking on the service
@@ -21,5 +21,5 @@ The cluster agent - working together with the [lieutenant-api](https://github.co
 To deploy the agent on a cluster, build the Docker image:
 
 ```console
-docker build . -t image-name:v0.0.1
+docker build . -t docker.io/vshn/steward:v0.0.1
 ```
