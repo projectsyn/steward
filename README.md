@@ -1,4 +1,8 @@
-# Steward: the SYN cluster agent
+# Project Syn: Steward
+
+The cluster agent - working together with the [lieutenant-api](https://github.com/projectsyn/lieutenant-api).
+
+**Please note that this project is in it's early stages and under active development**.
 
 ## Getting started
 
