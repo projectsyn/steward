@@ -16,10 +16,16 @@ The cluster agent - working together with the [lieutenant-api](https://github.co
 
 1. Start hacking on the service
 
-## Build Docker Image
+## Release
 
-To deploy the agent on a cluster, build the Docker image:
+Create a git tag:
 
 ```console
-docker build . -t docker.io/vshn/steward:v0.0.1
+git tag v0.0.2
+```
+
+Build the Docker image:
+
+```console
+make docker
 ```
