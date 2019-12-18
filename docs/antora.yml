@@ -1,0 +1,6 @@
+name: steward
+title: Steward Documentation
+version: master
+start_page: ROOT:index.adoc
+nav:
+- modules/ROOT/nav.adoc
