@@ -1,5 +1,8 @@
+pass:[<!-- vale Microsoft.GenderBias = NO -->] 
 = Steward
 
 image::syn.png[]
 
 This is the documentation of the Steward project.
+
+pass:[<!-- vale Microsoft.GenderBias = YES -->]
