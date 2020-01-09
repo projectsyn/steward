@@ -13,13 +13,20 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var repoString = `
+var (
+	repoString = `
 - type: git
   url: %s
   sshPrivateKeySecret:
     name: %s
     key: %s
 `
+	pluginString = `
+- name: kapitan
+  generate:
+    command: [kapitan, refs, --reveal, --refs-path, ../../refs/, --file, ./]
+`
+)
 
 func createArgoCDConfigMaps(gitInfo *api.GitInfo, clientset *kubernetes.Clientset, namespace string) error {
 	var knownHosts strings.Builder
@@ -60,7 +67,8 @@ func createArgoCDConfigMaps(gitInfo *api.GitInfo, clientset *kubernetes.Clientse
 			Labels: cmLabel,
 		},
 		Data: map[string]string{
-			"repositories": fmt.Sprintf(repoString, gitInfo.URL, argoSSHSecretName, argoSSHPrivateKey),
+			"repositories":            fmt.Sprintf(repoString, gitInfo.URL, argoSSHSecretName, argoSSHPrivateKey),
+			"configManagementPlugins": pluginString,
 		},
 	}
 
