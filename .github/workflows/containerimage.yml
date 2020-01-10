@@ -1,0 +1,23 @@
+name: Build Container Image
+on:
+  pull_request:
+    branches:
+    - master
+  push:
+    branches:
+    - master
+    tags:
+    - refs/tags/*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: docker.pkg.github.com/projectsyn/steward/steward:${{ github.ref }}
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build image
+      run: make docker ./
+    - name: Push image
+      if: github.event_name != 'pull_request'
+      run: docker push ${IMAGE_NAME}
