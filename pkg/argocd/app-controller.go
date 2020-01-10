@@ -51,7 +51,7 @@ func createApplicationControllerDeployment(clientset *kubernetes.Clientset, name
 								"--operation-processors",
 								"10",
 								"--app-resync",
-								"180",
+								"10",
 							},
 							Ports: []corev1.ContainerPort{
 								corev1.ContainerPort{
