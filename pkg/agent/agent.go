@@ -7,8 +7,7 @@ import (
 	"time"
 
 	"github.com/projectsyn/steward/pkg/api"
-	"github.com/projectsyn/steward/pkg/flux"
-	"k8s.io/client-go/kubernetes"
+	"github.com/projectsyn/steward/pkg/argocd"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
@@ -22,7 +21,7 @@ type Agent struct {
 	CloudRegion  string
 	Distribution string
 	Namespace    string
-	FluxImage    string
+	ArgoCDImage  string
 }
 
 // Run starts the cluster agent
@@ -43,35 +42,34 @@ func (a *Agent) Run(ctx context.Context) error {
 		return err
 	}
 
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return err
-	}
-
 	ticker := time.NewTicker(1 * time.Minute)
 
-	a.registerCluster(ctx, clientset, apiClient)
+	a.registerCluster(ctx, config, apiClient)
 
 	for {
 		select {
 		case <-ticker.C:
-			a.registerCluster(ctx, clientset, apiClient)
+			a.registerCluster(ctx, config, apiClient)
 		case <-ctx.Done():
 			return nil
 		}
 	}
 }
 
-func (a *Agent) registerCluster(ctx context.Context, clientset *kubernetes.Clientset, apiClient *api.Client) {
-	publicKey, err := flux.CreateSSHSecret(clientset, a.Namespace)
+func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiClient *api.Client) {
+	publicKey, err := argocd.CreateSSHSecret(config, a.Namespace)
 	if err != nil {
-		klog.Errorf("Error creating secret: %v", err)
+		klog.Errorf("Error creating SSH secret: %v", err)
+		return
+	}
+	if err := argocd.CreateArgoSecret(config, a.Namespace, a.Token); err != nil {
+		klog.Errorf("Error creating Argo CD secret: %v", err)
 		return
 	}
 	if git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution, publicKey); err != nil {
 		klog.Error(err)
 	} else {
-		if err := flux.ApplyFlux(ctx, clientset, a.Namespace, a.FluxImage, apiClient, git); err != nil {
+		if err := argocd.Apply(ctx, config, a.Namespace, a.ArgoCDImage, apiClient, git); err != nil {
 			klog.Error(err)
 		}
 	}

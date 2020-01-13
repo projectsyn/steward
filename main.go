@@ -1,3 +1,5 @@
+//go:generate go run github.com/rakyll/statik -src=./manifests -dest ./pkg -p manifests -f
+
 package main
 
 import (
@@ -42,7 +44,7 @@ func main() {
 	app.Flag("region", "Cloud region this cluster is running in").StringVar(&agent.CloudRegion)
 	app.Flag("distribution", "Kubernetes distribution this cluster is running").StringVar(&agent.Distribution)
 	app.Flag("namespace", "Namespace in which steward is running").Default("syn").StringVar(&agent.Namespace)
-	app.Flag("flux-image", "Image to be used for the flux deployment").Default("docker.io/fluxcd/flux:1.15.0").StringVar(&agent.FluxImage)
+	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default("docker.io/argoproj/argocd:v1.3.6").StringVar(&agent.ArgoCDImage)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }
