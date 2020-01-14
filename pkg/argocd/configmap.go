@@ -67,8 +67,9 @@ func createArgoCDConfigMaps(gitInfo *api.GitInfo, clientset *kubernetes.Clientse
 			Labels: cmLabel,
 		},
 		Data: map[string]string{
-			"repositories":            fmt.Sprintf(repoString, gitInfo.URL, argoSSHSecretName, argoSSHPrivateKey),
-			"configManagementPlugins": pluginString,
+			"repositories":                 fmt.Sprintf(repoString, gitInfo.URL, argoSSHSecretName, argoSSHPrivateKey),
+			"configManagementPlugins":      pluginString,
+			"application.instanceLabelKey": "argocd.argoproj.io/instance",
 		},
 	}
 
