@@ -1,6 +1,6 @@
 
-= pass:[<!-- vale off -->] Steward pass:[<!-- vale on -->] 
+= Steward
 
 image::syn.png[]
 
-This is the documentation of the pass:[<!-- vale Microsoft.GenderBias = NO -->] Steward pass:[<!-- vale Microsoft.GenderBias = YES -->] project.
+This is the documentation of the Steward project.
