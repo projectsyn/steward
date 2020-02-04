@@ -1,5 +1,5 @@
 name: steward
-title: Steward Documentation
+title: Steward
 version: master
 start_page: ROOT:index.adoc
 nav:
