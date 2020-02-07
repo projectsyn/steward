@@ -7,7 +7,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      IMAGE: docker.io/${{ github.repository }}
     steps:
+    - name: test
+      run: echo $IMAGE
     - uses: actions/checkout@v1
     - name: Build image
       run: make docker
