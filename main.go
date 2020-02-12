@@ -40,6 +40,7 @@ func main() {
 
 	app.Flag("api", "API URL to connect to").Required().URLVar(&agent.APIURL)
 	app.Flag("token", "Token to authenticate to the API").Required().StringVar(&agent.Token)
+	app.Flag("cluster-id", "ID of own cluster").Required().StringVar(&agent.ClusterID)
 	app.Flag("cloud", "Cloud type this cluster is running on").StringVar(&agent.CloudType)
 	app.Flag("region", "Cloud region this cluster is running in").StringVar(&agent.CloudRegion)
 	app.Flag("distribution", "Kubernetes distribution this cluster is running").StringVar(&agent.Distribution)

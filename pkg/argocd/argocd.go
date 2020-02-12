@@ -3,7 +3,7 @@ package argocd
 import (
 	"context"
 
-	"github.com/projectsyn/steward/pkg/api"
+	"github.com/projectsyn/lieutenant-api/pkg/api"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
@@ -32,7 +32,7 @@ var (
 )
 
 // Apply reconciles the Argo CD deployments
-func Apply(ctx context.Context, config *rest.Config, namespace, argoImage string, apiClient *api.Client, gitInfo *api.GitInfo) error {
+func Apply(ctx context.Context, config *rest.Config, namespace, argoImage string, apiClient *api.Client, cluster *api.Cluster) error {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
@@ -50,11 +50,11 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage string
 		return nil
 	}
 	klog.Infof("Found %d of expected %d deployments, bootstrapping now", foundCount, expectedCount)
-	return bootstrapArgo(ctx, clientset, config, namespace, argoImage, apiClient, gitInfo)
+	return bootstrapArgo(ctx, clientset, config, namespace, argoImage, apiClient, cluster)
 }
 
-func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, argoImage string, apiClient *api.Client, gitInfo *api.GitInfo) error {
-	if err := createArgoCDConfigMaps(gitInfo, clientset, namespace); err != nil {
+func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, argoImage string, apiClient *api.Client, cluster *api.Cluster) error {
+	if err := createArgoCDConfigMaps(cluster, clientset, namespace); err != nil {
 		return err
 	}
 
@@ -74,11 +74,11 @@ func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config 
 		return err
 	}
 
-	if err := createArgoProject(gitInfo, config, namespace); err != nil {
+	if err := createArgoProject(cluster, config, namespace); err != nil {
 		return err
 	}
 
-	if err := createArgoApp(gitInfo, config, namespace); err != nil {
+	if err := createArgoApp(cluster, config, namespace); err != nil {
 		return err
 	}
 
