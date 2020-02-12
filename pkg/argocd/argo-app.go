@@ -1,7 +1,7 @@
 package argocd
 
 import (
-	"github.com/projectsyn/steward/pkg/api"
+	"github.com/projectsyn/lieutenant-api/pkg/api"
 	k8err "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -26,7 +26,7 @@ var (
 	localKubernetesAPI = "https://kubernetes.default.svc"
 )
 
-func createArgoProject(gitInfo *api.GitInfo, config *rest.Config, namespace string) error {
+func createArgoProject(cluster *api.Cluster, config *rest.Config, namespace string) error {
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func createArgoProject(gitInfo *api.GitInfo, config *rest.Config, namespace stri
 					"server":    localKubernetesAPI,
 				}},
 				"sourceRepos": []string{
-					gitInfo.URL,
+					*cluster.GitRepo.Url,
 				},
 			},
 		},
@@ -67,7 +67,7 @@ func createArgoProject(gitInfo *api.GitInfo, config *rest.Config, namespace stri
 	return nil
 }
 
-func createArgoApp(gitInfo *api.GitInfo, config *rest.Config, namespace string) error {
+func createArgoApp(cluster *api.Cluster, config *rest.Config, namespace string) error {
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func createArgoApp(gitInfo *api.GitInfo, config *rest.Config, namespace string) 
 			"spec": map[string]interface{}{
 				"project": argoProjectName,
 				"source": map[string]interface{}{
-					"repoURL":        gitInfo.URL,
+					"repoURL":        *cluster.GitRepo.Url,
 					"path":           argoAppsPath,
 					"targetRevision": "HEAD",
 				},

@@ -1,12 +1,17 @@
 package agent
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"time"
 
-	"github.com/projectsyn/steward/pkg/api"
+	"github.com/deepmap/oapi-codegen/pkg/securityprovider"
+	"github.com/projectsyn/lieutenant-api/pkg/api"
 	"github.com/projectsyn/steward/pkg/argocd"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -17,6 +22,7 @@ import (
 type Agent struct {
 	APIURL       *url.URL
 	Token        string
+	ClusterID    string
 	CloudType    string
 	CloudRegion  string
 	Distribution string
@@ -26,13 +32,14 @@ type Agent struct {
 
 // Run starts the cluster agent
 func (a *Agent) Run(ctx context.Context) error {
-	apiClient := api.NewClient(nil)
-	apiClient.BaseURL = a.APIURL
-	apiClient.Token = a.Token
+	bearerToken, _ := securityprovider.NewSecurityProviderBearerToken(a.Token)
+	apiClient, err := api.NewClient(a.APIURL.String(), api.WithRequestEditorFn(bearerToken.Intercept))
+	if err != nil {
+		return err
+	}
 
 	kubecfg := os.Getenv("KUBECONFIG")
 	var config *rest.Config
-	var err error
 	if kubecfg == "" {
 		config, err = rest.InClusterConfig()
 	} else {
@@ -66,11 +73,43 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		klog.Errorf("Error creating Argo CD secret: %v", err)
 		return
 	}
-	if git, err := apiClient.RegisterCluster(ctx, a.CloudType, a.CloudRegion, a.Distribution, publicKey); err != nil {
+	patchCluster := api.ClusterProperties{
+		GitRepo: &api.GitRepo{
+			DeployKey: &publicKey,
+		},
+		Facts: &api.ClusterFacts{
+			"cloud":        a.CloudType,
+			"region":       a.CloudRegion,
+			"distribution": a.Distribution,
+		},
+	}
+	var buf io.ReadWriter
+	buf = new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(patchCluster); err != nil {
 		klog.Error(err)
-	} else {
-		if err := argocd.Apply(ctx, config, a.Namespace, a.ArgoCDImage, apiClient, git); err != nil {
+		return
+	}
+	resp, err := apiClient.UpdateClusterWithBody(ctx, api.ClusterIdParameter(a.ClusterID), api.ContentJSONPatch, buf)
+	if err != nil {
+		klog.Error(err)
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		reason := &api.Reason{}
+		if err := json.NewDecoder(resp.Body).Decode(reason); err != nil {
 			klog.Error(err)
+			return
 		}
+		klog.Error(reason.Reason)
+		return
+	}
+	cluster := &api.Cluster{}
+	if err := json.NewDecoder(resp.Body).Decode(cluster); err != nil {
+		klog.Error(err)
+		return
+	}
+
+	if err := argocd.Apply(ctx, config, a.Namespace, a.ArgoCDImage, apiClient, cluster); err != nil {
+		klog.Error(err)
 	}
 }

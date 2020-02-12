@@ -2,9 +2,9 @@ package argocd
 
 import (
 	"fmt"
-	"strings"
+	"net/url"
 
-	"github.com/projectsyn/steward/pkg/api"
+	"github.com/projectsyn/lieutenant-api/pkg/api"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes"
@@ -28,26 +28,31 @@ var (
 `
 )
 
-func createArgoCDConfigMaps(gitInfo *api.GitInfo, clientset *kubernetes.Clientset, namespace string) error {
-	var knownHosts strings.Builder
-	for _, key := range gitInfo.HostKeys {
-		for k, v := range key {
-			if _, err := fmt.Fprintf(&knownHosts, "%v %v %v\n", gitInfo.HostName, k, v); err != nil {
-				return err
-			}
-		}
+func createArgoCDConfigMaps(cluster *api.Cluster, clientset *kubernetes.Clientset, namespace string) error {
+	if cluster.GitRepo == nil || cluster.GitRepo.Url == nil {
+		return fmt.Errorf("No git repo information received from API for cluster '%s'", cluster.Id)
+	}
+	gitURL, err := url.Parse(*cluster.GitRepo.Url)
+	if err != nil {
+		return err
 	}
 	cmLabel := map[string]string{
 		"app.kubernetes.io/part-of": "argocd",
 	}
-	knownHostsConfigMap := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   argoSSHConfigMapName,
-			Labels: cmLabel,
-		},
-		Data: map[string]string{
-			"ssh_known_hosts": knownHosts.String(),
-		},
+	if cluster.GitRepo.HostKeys != nil {
+
+		knownHostsConfigMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:   argoSSHConfigMapName,
+				Labels: cmLabel,
+			},
+			Data: map[string]string{
+				"ssh_known_hosts": *cluster.GitRepo.HostKeys,
+			},
+		}
+		if err := createOrUpdateConfigMap(clientset, namespace, knownHostsConfigMap); err != nil {
+			return nil
+		}
 	}
 	tlsConfigMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -67,15 +72,12 @@ func createArgoCDConfigMaps(gitInfo *api.GitInfo, clientset *kubernetes.Clientse
 			Labels: cmLabel,
 		},
 		Data: map[string]string{
-			"repositories":                 fmt.Sprintf(repoString, gitInfo.URL, argoSSHSecretName, argoSSHPrivateKey),
+			"repositories":                 fmt.Sprintf(repoString, gitURL, argoSSHSecretName, argoSSHPrivateKey),
 			"configManagementPlugins":      pluginString,
 			"application.instanceLabelKey": "argocd.argoproj.io/instance",
 		},
 	}
 
-	if err := createOrUpdateConfigMap(clientset, namespace, knownHostsConfigMap); err != nil {
-		return nil
-	}
 	if err := createOrUpdateConfigMap(clientset, namespace, tlsConfigMap); err != nil {
 		return nil
 	}
