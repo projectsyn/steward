@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/deepmap/oapi-codegen v1.3.5-0.20200206142458-d22ad467e649
-	github.com/projectsyn/lieutenant-api v0.0.0-20200212141939-ad3085c275d3
+	github.com/projectsyn/lieutenant-api v0.0.1
 	github.com/rakyll/statik v0.1.6
 	golang.org/x/crypto v0.0.0-20200210222208-86ce3cb69678
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
