@@ -77,12 +77,12 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		GitRepo: &api.GitRepo{
 			DeployKey: &publicKey,
 		},
-		Facts: &api.ClusterFacts{
-			"cloud":        a.CloudType,
-			"region":       a.CloudRegion,
-			"distribution": a.Distribution,
-		},
 	}
+
+	setFact("cloud", a.CloudType, &patchCluster)
+	setFact("region", a.CloudRegion, &patchCluster)
+	setFact("distribution", a.Distribution, &patchCluster)
+
 	var buf io.ReadWriter
 	buf = new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(patchCluster); err != nil {
@@ -112,4 +112,14 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 	if err := argocd.Apply(ctx, config, a.Namespace, a.ArgoCDImage, apiClient, cluster); err != nil {
 		klog.Error(err)
 	}
+}
+
+func setFact(fact, value string, cluster *api.ClusterProperties) {
+	if len(value) == 0 {
+		return
+	}
+	if cluster.Facts == nil {
+		cluster.Facts = &api.ClusterFacts{}
+	}
+	(*cluster.Facts)[fact] = value
 }
