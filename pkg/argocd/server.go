@@ -127,7 +127,7 @@ func createServerDeployment(clientset *kubernetes.Clientset, namespace, argoImag
 	_, err := clientset.AppsV1().Deployments(namespace).Create(deployment)
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			klog.Info("Argo CD server already exists")
+			klog.Warning("Argo CD server already exists")
 			return nil
 		}
 		return err

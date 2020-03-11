@@ -83,7 +83,7 @@ func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage
 	}
 	if _, err := clientset.CoreV1().Services(namespace).Create(service); err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			klog.Info("Argo CD redis service already exists")
+			klog.Warning("Argo CD redis service already exists")
 		} else {
 			return err
 		}
@@ -92,7 +92,7 @@ func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage
 	}
 	if _, err := clientset.AppsV1().Deployments(namespace).Create(deployment); err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			klog.Info("Argo CD redis deployment already exists")
+			klog.Warning("Argo CD redis deployment already exists")
 		} else {
 			return err
 		}

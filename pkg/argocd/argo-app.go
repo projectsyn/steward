@@ -57,7 +57,7 @@ func createArgoProject(cluster *api.Cluster, config *rest.Config, namespace stri
 
 	if _, err = argoProjectClient.Namespace(namespace).Create(project, v1.CreateOptions{}); err != nil {
 		if k8err.IsAlreadyExists(err) {
-			klog.Info("Argo Project already exists, skip")
+			klog.Warning("Argo Project already exists, skip")
 		} else {
 			return err
 		}
@@ -103,7 +103,7 @@ func createArgoApp(cluster *api.Cluster, config *rest.Config, namespace string) 
 
 	if _, err = argoAppClient.Namespace(namespace).Create(app, v1.CreateOptions{}); err != nil {
 		if k8err.IsAlreadyExists(err) {
-			klog.Info("Argo App already exists, skip")
+			klog.Warning("Argo App already exists, skip")
 		} else {
 			return err
 		}
