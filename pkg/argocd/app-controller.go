@@ -95,7 +95,7 @@ func createApplicationControllerDeployment(clientset *kubernetes.Clientset, name
 	_, err := clientset.AppsV1().Deployments(namespace).Create(deployment)
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			klog.Info("Argo CD application-controller already exists")
+			klog.Warning("Argo CD application-controller already exists")
 		} else {
 			return err
 		}

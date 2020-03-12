@@ -134,7 +134,7 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 	}
 	if _, err := clientset.CoreV1().Services(namespace).Create(service); err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			klog.Info("Argo CD repo-server service already exists")
+			klog.Warning("Argo CD repo-server service already exists")
 		} else {
 			return err
 		}
@@ -143,7 +143,7 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 	}
 	if _, err := clientset.AppsV1().Deployments(namespace).Create(deployment); err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			klog.Info("Argo CD repo-server deployment already exists")
+			klog.Warning("Argo CD repo-server deployment already exists")
 		} else {
 			return err
 		}
