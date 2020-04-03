@@ -6,7 +6,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.3.5
 	github.com/projectsyn/lieutenant-api v0.1.0
 	github.com/rakyll/statik v0.1.7
-	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
+	golang.org/x/crypto v0.0.0-20200403201458-baeed622b8d8
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.17.3
 	k8s.io/apiextensions-apiserver v0.17.2
