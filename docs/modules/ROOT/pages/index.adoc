@@ -1,6 +1,45 @@
-
 = Steward
 
 image::syn.png[]
 
-This is the documentation of the Steward project.
+This is the documentation of the Steward cluster agent. Also see the xref:syn:SDDs:0009-steward-cluster-agent.adoc[SDD 0009 - Steward Cluster Agent] for more information.
+
+== Introduction
+
+The Steward cluster agent is the first part of Project Syn that's installed on a new cluster to manage it. It connects to the xref:lieutenant-api::index.adoc[Lieutenant API] to receive the necessary configuration and to report back the cluster state.
+
+This is done once per minute. It also checks on each run if the Argo CD components are deployed (exist) and bootstraps them if they don't exist.
+
+
+== API Communication
+
+Steward uses the xref:lieutenant-api::index.adoc[Lieutenant API] to receive the configuration of the cluster and to report the state of the cluster. To work properly, the following information is received from the API:
+
+* Cluster catalog Git repository
+** URL of the repository
+** SSH host keys of the server
+
+Steward also reports back information and status of the cluster:
+
+* Cloud type (for example `cloudscale`)
+* Cloud region (for example `eu-west-1`)
+* Kubernetes distribution (for example `openshift4`)
+* SSH public key (used to clone the catalog git repo)
+
+
+=== Authentication
+
+In order to communicate with the API, Steward needs to authenticate to it. A bearer token is configured in the `steward` secret which is initially installed and subsequently managed by Argo CD. It's configured as an environment variable: `STEWARD_TOKEN`.
+The cluster ID of its own cluster is also configured as an environment variable: `STEWARD_CLUSTER_ID`.
+
+This API user needs permissions to `get` and `update` its own Lieutenant cluster object.
+
+
+== Bootstrapping
+
+As soon as Steward could connect to the API and got the necessary information it starts to bootstrap Argo CD. The initial setup consists of the default deployments required to run Argo CD (`argocd-application-controller`, `argocd-redis, argocd-repo-server` and `argocd-server`), the Argo CD CRDs (`Application` and `AppProject`), the configuration of Argo CD in a ConfigMap and the Argo CD secrets (SSH key and admin user).
+
+The SSH key pair (for access to a Git repository via SSH) is generated on the first run of Steward and stored in a secret. The public key is sent to the API. The Argo CD admin user is configured with the Steward token as password to allow debugging of Argo CD via `kubectl port-forward`.
+
+This is a very basic setup of Argo CD and is just enough that it can connect to the catalog Git repo and configure itself.
+On the first run Argo CD will apply the configuration for itself from the catalog Git repo. This will for example add the Vault agent and Kapitan plugin.
