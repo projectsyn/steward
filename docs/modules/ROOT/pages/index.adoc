@@ -2,18 +2,18 @@
 
 image::syn.png[]
 
-This is the documentation of the Steward cluster agent.
+This is the documentation of the Steward cluster agent. Also see the xref:syn:SDDs:0009-steward-cluster-agent.adoc[SDD 0009 - Steward Cluster Agent] for more information.
 
 == Introduction
 
-The Steward cluster agent is the first part of SYN that's installed on a new cluster to manage it. It connects to the Lieutenant API to receive the necessary configuration and to report back the cluster state.
+The Steward cluster agent is the first part of SYN that's installed on a new cluster to manage it. It connects to the xref:lieutenant-api::index.adoc[Lieutenant API] to receive the necessary configuration and to report back the cluster state.
 
 This is done on a minutely interval. It also checks on each run if the Argo CD components are deployed (exist) and bootstraps them if they don't exist.
 
 
 == API Communication
 
-Steward uses the Lieutenant API to receive the configuration of the cluster and to report the state of the cluster. To work properly, the following information is received from the API:
+Steward uses the xref:lieutenant-api::index.adoc[Lieutenant API] to receive the configuration of the cluster and to report the state of the cluster. To work properly, the following information is received from the API:
 
 * Cluster catalog Git repository
 ** URL of the repository
