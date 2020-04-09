@@ -6,14 +6,14 @@ This is the documentation of the Steward cluster agent. Also see the xref:syn:SD
 
 == Introduction
 
-The Steward cluster agent is the first part of Project Syn that's installed on a new cluster to manage it. It connects to the xref:lieutenant-api::index.adoc[Lieutenant API] to receive the necessary configuration and to report back the cluster state.
+The Steward cluster agent is the first part of Project Syn that's installed on a new cluster to manage it. It connects to the xref:lieutenant-api::home.adoc[Lieutenant API] to receive the necessary configuration and to report back the cluster state.
 
 This is done once per minute. It also checks on each run if the Argo CD components are deployed (exist) and bootstraps them if they don't exist.
 
 
 == API Communication
 
-Steward uses the xref:lieutenant-api::index.adoc[Lieutenant API] to receive the configuration of the cluster and to report the state of the cluster. To work properly, the following information is received from the API:
+Steward uses the xref:lieutenant-api::home.adoc[Lieutenant API] to receive the configuration of the cluster and to report the state of the cluster. To work properly, the following information is received from the API:
 
 * Cluster catalog Git repository
 ** URL of the repository
