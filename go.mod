@@ -3,14 +3,14 @@ module github.com/projectsyn/steward
 go 1.13
 
 require (
-	github.com/deepmap/oapi-codegen v1.3.6
-	github.com/projectsyn/lieutenant-api v0.1.0
+	github.com/deepmap/oapi-codegen v1.3.8
+	github.com/projectsyn/lieutenant-api v0.1.2
 	github.com/rakyll/statik v0.1.7
-	golang.org/x/crypto v0.0.0-20200403201458-baeed622b8d8
+	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	k8s.io/api v0.17.3
-	k8s.io/apiextensions-apiserver v0.17.2
-	k8s.io/apimachinery v0.17.3
+	k8s.io/api v0.17.4
+	k8s.io/apiextensions-apiserver v0.17.4
+	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 )
