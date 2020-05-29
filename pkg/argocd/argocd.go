@@ -13,8 +13,8 @@ import (
 
 var (
 	argoLabels = map[string]string{
-		"app.kubernetes.io/part-of":  "argocd",
-		"app.kubernetes.io/instance": "argocd",
+		"app.kubernetes.io/part-of":   "argocd",
+		"argocd.argoproj.io/instance": "argocd",
 	}
 	argoSSHSecretName     = "argo-ssh-key"
 	argoSSHPublicKey      = "sshPublicKey"
