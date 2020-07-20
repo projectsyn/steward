@@ -175,6 +175,8 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/daviddengcn/go-colortext v0.0.0-20160507010035-511bcaf42ccd/go.mod h1:dv4zxwHi5C/8AeI+4gX4dCWOIvNi7I6JCSX0HvlKPgE=
 github.com/deepmap/oapi-codegen v1.3.8 h1:ot/iBKB7oCcT61L419fJZFMxLRgCW8fYAYKuPnmFOR4=
 github.com/deepmap/oapi-codegen v1.3.8/go.mod h1:kmvHN8Gd6to5zLS+P8mhUYJI+Lmn4h7NH00s/5erjd8=
+github.com/deepmap/oapi-codegen v1.3.11 h1:Nd3tDQfqgquLmCzyRONHzs5SJEwPPoQcFZxT8MKt1Hs=
+github.com/deepmap/oapi-codegen v1.3.11/go.mod h1:suMvK7+rKlx3+tpa8ByptmvoXbAV70wERKTOGH3hLp0=
 github.com/deislabs/oras v0.8.1/go.mod h1:Mx0rMSbBNaNfY9hjpccEnxkOqJL6KGjtxNHPLC4G4As=
 github.com/denisenkom/go-mssqldb v0.0.0-20190515213511-eb9f6a1743f3/go.mod h1:zAg7JM8CkOJ43xKXIj7eRO9kmWm/TW578qo+oDO6tuM=
 github.com/denverdino/aliyungo v0.0.0-20190125010748-a747050bb1ba/go.mod h1:dV8lFg6daOBZbT6/BDGIz6Y3WFGn8juu6G+CQ6LHtl0=
@@ -239,6 +241,8 @@ github.com/getkin/kin-openapi v0.3.0 h1:xsQ4mA20YJDMgIHdHqMKZ66QUe6/hi+x6yLsTTz8
 github.com/getkin/kin-openapi v0.3.0/go.mod h1:W8dhxZgpE84ciM+VIItFqkmZ4eHtuomrdIHtASQIqi0=
 github.com/getkin/kin-openapi v0.9.0 h1:/vaUQkiOR+vfFO3oilZentZTfAhz7OzXPhLdNas4q4w=
 github.com/getkin/kin-openapi v0.9.0/go.mod h1:zZQMFkVgRHCdhgb6ihCTIo9dyDZFvX0k/xAKqw1FhPw=
+github.com/getkin/kin-openapi v0.13.0 h1:03fqBEEgivp4MVK2ElB140B56hjO9ZFvFTHBsvFsSro=
+github.com/getkin/kin-openapi v0.13.0/go.mod h1:WGRs2ZMM1Q8LR1QBEwUxC6RJEfaBcD0s+pcEVXFuAjw=
 github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/ghodss/yaml v0.0.0-20180820084758-c7ce16629ff4/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
@@ -1165,6 +1169,8 @@ gopkg.in/yaml.v2 v2.2.5/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.2.7/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.2.8 h1:obN1ZagJSUGI0Ek/LBmuj4SNLPfIny3KsKFopxRdj10=
 gopkg.in/yaml.v2 v2.2.8/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.3.0 h1:clyUAQHOM3G0M3f5vQj7LuJrETvjVot3Z5el9nffUtU=
+gopkg.in/yaml.v2 v2.3.0/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v3 v3.0.0-20190905181640-827449938966/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
