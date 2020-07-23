@@ -688,8 +688,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
-github.com/projectsyn/lieutenant-api v0.1.5 h1:/YyRF/TAGrSI2iK03f+Btj08GYfP0+uczJsDk1sdgnA=
-github.com/projectsyn/lieutenant-api v0.1.5/go.mod h1:0aQE/U1dPlDXR811SNY9pDjl91kbyQpPpY5jSv/N6j4=
+github.com/projectsyn/lieutenant-api v0.2.0 h1:nQ/N9J5/ReHGpfzTJf4b5wEqFxHcgDIrkiEvpLUUjA4=
+github.com/projectsyn/lieutenant-api v0.2.0/go.mod h1:0aQE/U1dPlDXR811SNY9pDjl91kbyQpPpY5jSv/N6j4=
 github.com/projectsyn/lieutenant-operator v0.1.4 h1:ueuaE8fWGOk/Tt1yL/XxxpG6hyIWWJCripV+vZcsm6g=
 github.com/projectsyn/lieutenant-operator v0.1.4/go.mod h1:fhioC3LJcI219nrcGAOkGl20BL15JlSNWwSYBNuYaPk=
 github.com/prometheus/alertmanager v0.18.0/go.mod h1:WcxHBl40VSPuOaqWae6l6HpnEOVRIycEJ7i9iYkadEE=
