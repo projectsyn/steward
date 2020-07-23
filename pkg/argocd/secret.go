@@ -36,7 +36,7 @@ func CreateArgoSecret(config *rest.Config, namespace, password string) error {
 		currentPwHash := secret.Data["admin.password"]
 		err = bcrypt.CompareHashAndPassword(currentPwHash, []byte(password))
 		if err == nil {
-			klog.Warning("Argo CD secret already exists, no updated needed")
+			klog.Warning("Argo CD secret already exists, no update needed")
 			return nil
 		}
 		if secret.StringData == nil {
