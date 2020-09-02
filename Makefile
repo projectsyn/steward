@@ -40,7 +40,6 @@ test: generate
 clean:
 	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
-	rm -rf $(web_dir)
 
 .PHONY: docker
 docker:
