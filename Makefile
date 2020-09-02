@@ -46,10 +46,10 @@ docker:
 	docker build -t $(IMAGE_NAME) .
 	@echo built image $(IMAGE_NAME)
 
-.PHONY: docs
-docs:
+.PHONY: docs-serve
+docs-serve:
 	$(antora_preview_cmd)
 
-.PHONY: check
-check:
+.PHONY: docs-vale
+docs-vale:
 	$(vale_cmd)
