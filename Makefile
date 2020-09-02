@@ -5,17 +5,11 @@ VERSION ?= $(shell git describe --tags --always --dirty --match=v* || (echo "com
 
 IMAGE_NAME ?= docker.io/vshn/$(BINARY_NAME):$(VERSION)
 
-# Antora variables
-pages   := $(shell find . -type f -name '*.adoc')
-web_dir := ./_antora
-
 docker_cmd  ?= docker
 docker_opts ?= --rm --tty --user "$$(id -u)"
 
-antora_cmd  ?= $(docker_cmd) run $(docker_opts) --volume "$${PWD}":/antora vshn/antora:2.3.0
-antora_opts ?= --cache-dir=.cache/antora
-
-vale_cmd ?= $(docker_cmd) run $(docker_opts) --volume "$${PWD}"/docs/modules/ROOT/pages:/pages vshn/vale:2.1.1 --minAlertLevel=error --config=/pages/.vale.ini /pages
+vale_cmd           ?= $(docker_cmd) run $(docker_opts) --volume "$${PWD}"/docs/modules/ROOT/pages:/pages vshn/vale:2.1.1 --minAlertLevel=error --config=/pages/.vale.ini /pages
+antora_preview_cmd ?= $(docker_cmd) run --rm --publish 2020:2020 --volume "${PWD}":/antora vshn/antora-preview:2.3.3 --style=syn --antora=docs
 
 # Go parameters
 GOCMD   ?= go
@@ -46,19 +40,16 @@ test: generate
 clean:
 	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
-	rm -rf $(web_dir)
 
 .PHONY: docker
 docker:
 	docker build -t $(IMAGE_NAME) .
 	@echo built image $(IMAGE_NAME)
 
-.PHONY: docs
-docs:    $(web_dir)/index.html
+.PHONY: docs-serve
+docs-serve:
+	$(antora_preview_cmd)
 
-$(web_dir)/index.html: playbook.yml $(pages)
-	$(antora_cmd) $(antora_opts) $<
-
-.PHONY: check
-check:
+.PHONY: docs-vale
+docs-vale:
 	$(vale_cmd)
