@@ -3,7 +3,7 @@ module github.com/projectsyn/steward
 go 1.13
 
 require (
-	github.com/deepmap/oapi-codegen v1.3.11
+	github.com/deepmap/oapi-codegen v1.3.13
 	github.com/projectsyn/lieutenant-api v0.1.5
 	github.com/rakyll/statik v0.1.7
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
