@@ -45,7 +45,7 @@ func main() {
 	app.Flag("region", "Cloud region this cluster is running in").StringVar(&agent.CloudRegion)
 	app.Flag("distribution", "Kubernetes distribution this cluster is running").StringVar(&agent.Distribution)
 	app.Flag("namespace", "Namespace in which steward is running").Default("syn").StringVar(&agent.Namespace)
-	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default("docker.io/argoproj/argocd:v1.5.5").StringVar(&agent.ArgoCDImage)
+	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default("docker.io/argoproj/argocd:v1.7.4").StringVar(&agent.ArgoCDImage)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }
