@@ -60,7 +60,7 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 				},
 				Spec: corev1.PodSpec{
 					Volumes: []corev1.Volume{
-						corev1.Volume{
+						{
 							Name: "ssh-known-hosts",
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
@@ -70,7 +70,7 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 								},
 							},
 						},
-						corev1.Volume{
+						{
 							Name: "tls-certs",
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
@@ -80,9 +80,15 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 								},
 							},
 						},
+						{
+							Name: "gpg-keyring",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
+							},
+						},
 					},
 					Containers: []corev1.Container{
-						corev1.Container{
+						{
 							Name:  "argocd-repo-server",
 							Image: argoImage,
 							Command: []string{
@@ -90,18 +96,22 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 								"argocd-repo-server",
 							},
 							Ports: []corev1.ContainerPort{
-								corev1.ContainerPort{
+								{
 									ContainerPort: 8081,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
-								corev1.VolumeMount{
+								{
 									Name:      "ssh-known-hosts",
 									MountPath: "/app/config/ssh",
 								},
-								corev1.VolumeMount{
+								{
 									Name:      "tls-certs",
 									MountPath: "/app/config/tls",
+								},
+								{
+									Name:      "gpg-keyring",
+									MountPath: "/app/config/gpg/keys",
 								},
 							},
 							LivenessProbe: &corev1.Probe{
