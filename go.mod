@@ -40,4 +40,4 @@ replace (
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
 )
 
-replace github.com/docker/docker => github.com/moby/moby v1.13.1 // Required by Helm
+replace github.com/docker/docker => /v20github.com/moby/moby/v20 v20.10.2 // Required by Helm
