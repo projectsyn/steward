@@ -46,10 +46,6 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage string
 	}
 	expectedDeploymentCount := 3
 	foundDeploymentCount := len(deployments.Items)
-	if foundDeploymentCount == expectedDeploymentCount {
-		klog.Infof("Found %d of %d deployments", foundDeploymentCount, expectedDeploymentCount)
-		return nil
-	}
 
 	statefulsets, err := clientset.AppsV1().StatefulSets(namespace).List(metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/part-of=argocd",
@@ -59,10 +55,12 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage string
 	}
 	expectedStatefulSetCount := 1
 	foundStatefulSetCount := len(statefulsets.Items)
-	if foundStatefulSetCount == expectedStatefulSetCount {
-		klog.Infof("Found %d of %d statefulsets", foundStatefulSetCount, expectedStatefulSetCount)
+
+	if foundDeploymentCount == expectedDeploymentCount && foundStatefulSetCount == expectedStatefulSetCount {
+		klog.Infof("Found %d of expected %d deployments, found %d of expected %d statefulsets, skip", foundDeploymentCount, expectedDeploymentCount, foundStatefulSetCount, expectedStatefulSetCount)
 		return nil
 	}
+
 	klog.Infof("Found %d of expected %d deployments, found %d of expected %d statefulsets, bootstrapping now", foundDeploymentCount, expectedDeploymentCount, foundStatefulSetCount, expectedStatefulSetCount)
 	return bootstrapArgo(ctx, clientset, config, namespace, argoImage, apiClient, cluster)
 }
