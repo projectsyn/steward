@@ -57,7 +57,7 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage string
 	foundStatefulSetCount := len(statefulsets.Items)
 
 	if foundDeploymentCount == expectedDeploymentCount && foundStatefulSetCount == expectedStatefulSetCount {
-		klog.Infof("Found %d of expected %d deployments, found %d of expected %d statefulsets, skip", foundDeploymentCount, expectedDeploymentCount, foundStatefulSetCount, expectedStatefulSetCount)
+		// Found expected deployments, found expected statefulsets, skip
 		return nil
 	}
 
