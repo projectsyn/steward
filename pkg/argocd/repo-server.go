@@ -116,25 +116,56 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 							},
 							LivenessProbe: &corev1.Probe{
 								Handler: corev1.Handler{
-									TCPSocket: &corev1.TCPSocketAction{
+									HTTPGet: &corev1.HTTPGetAction{
+										Path: "/healthz?full=true",
 										Port: intstr.IntOrString{
-											IntVal: 8081,
+											IntVal: 8084,
 										},
 									},
 								},
-								InitialDelaySeconds: 60,
-								PeriodSeconds:       10,
+								InitialDelaySeconds: 30,
+								PeriodSeconds:       5,
+								FailureThreshold:    3,
 							},
 							ReadinessProbe: &corev1.Probe{
 								Handler: corev1.Handler{
-									TCPSocket: &corev1.TCPSocketAction{
+									HTTPGet: &corev1.HTTPGetAction{
+										Path: "/healthz",
 										Port: intstr.IntOrString{
-											IntVal: 8081,
+											IntVal: 8084,
 										},
 									},
 								},
-								InitialDelaySeconds: 1,
+								InitialDelaySeconds: 5,
 								PeriodSeconds:       10,
+							},
+						},
+					},
+					Affinity: &corev1.Affinity{
+						PodAntiAffinity: &corev1.PodAntiAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+								{
+									PodAffinityTerm: corev1.PodAffinityTerm{
+										LabelSelector: &metav1.LabelSelector{
+											MatchLabels: map[string]string{
+												"app.kubernetes.io/name": name,
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+									Weight: 100,
+								},
+								{
+									PodAffinityTerm: corev1.PodAffinityTerm{
+										LabelSelector: &metav1.LabelSelector{
+											MatchLabels: map[string]string{
+												"app.kubernetes.io/part-of": "argocd",
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+									Weight: 5,
+								},
 							},
 						},
 					},

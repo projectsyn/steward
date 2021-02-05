@@ -60,6 +60,7 @@ func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage
 					},
 				},
 				Spec: corev1.PodSpec{
+					ServiceAccountName: "steward",
 					Containers: []corev1.Container{
 						corev1.Container{
 							Name:  "redis",

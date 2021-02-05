@@ -9,9 +9,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	// TODO: Switch to utilpointer "k8s.io/utils/pointer"
 )
 
-func createApplicationControllerDeployment(clientset *kubernetes.Clientset, namespace, argoImage string) error {
+func int32Ptr(i int32) *int32 { return &i }
+
+func createApplicationControllerStatefulSet(clientset *kubernetes.Clientset, namespace, argoImage string) error {
 	name := "argocd-application-controller"
 	labels := map[string]string{
 		"app.kubernetes.io/component": "application-controller",
@@ -20,13 +23,15 @@ func createApplicationControllerDeployment(clientset *kubernetes.Clientset, name
 	for k, v := range argoLabels {
 		labels[k] = v
 	}
-	deployment := &appsv1.Deployment{
+	statefulset := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 			Labels:    labels,
 		},
-		Spec: appsv1.DeploymentSpec{
+		Spec: appsv1.StatefulSetSpec{
+			// Replicas: utilpointer.Int32Ptr(1),
+			Replicas: int32Ptr(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app.kubernetes.io/name": name,
@@ -84,15 +89,40 @@ func createApplicationControllerDeployment(clientset *kubernetes.Clientset, name
 							},
 						},
 					},
+					Affinity: &corev1.Affinity{
+						PodAntiAffinity: &corev1.PodAntiAffinity{
+							PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+								{
+									PodAffinityTerm: corev1.PodAffinityTerm{
+										LabelSelector: &metav1.LabelSelector{
+											MatchLabels: map[string]string{
+												"app.kubernetes.io/name": name,
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+									Weight: 100,
+								},
+								{
+									PodAffinityTerm: corev1.PodAffinityTerm{
+										LabelSelector: &metav1.LabelSelector{
+											MatchLabels: map[string]string{
+												"app.kubernetes.io/part-of": "argocd",
+											},
+										},
+										TopologyKey: "kubernetes.io/hostname",
+									},
+									Weight: 5,
+								},
+							},
+						},
+					},
 				},
-			},
-			Strategy: appsv1.DeploymentStrategy{
-				Type: appsv1.RecreateDeploymentStrategyType,
 			},
 		},
 	}
 
-	_, err := clientset.AppsV1().Deployments(namespace).Create(deployment)
+	_, err := clientset.AppsV1().StatefulSets(namespace).Create(statefulset)
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD application-controller already exists")
@@ -100,7 +130,7 @@ func createApplicationControllerDeployment(clientset *kubernetes.Clientset, name
 			return err
 		}
 	} else {
-		klog.Info("Created Argo CD application-controller deployment")
+		klog.Info("Created Argo CD application-controller statefulset")
 	}
 	return nil
 }
