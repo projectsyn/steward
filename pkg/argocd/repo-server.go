@@ -141,34 +141,6 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 							},
 						},
 					},
-					Affinity: &corev1.Affinity{
-						PodAntiAffinity: &corev1.PodAntiAffinity{
-							PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
-								{
-									PodAffinityTerm: corev1.PodAffinityTerm{
-										LabelSelector: &metav1.LabelSelector{
-											MatchLabels: map[string]string{
-												"app.kubernetes.io/name": name,
-											},
-										},
-										TopologyKey: "kubernetes.io/hostname",
-									},
-									Weight: 100,
-								},
-								{
-									PodAffinityTerm: corev1.PodAffinityTerm{
-										LabelSelector: &metav1.LabelSelector{
-											MatchLabels: map[string]string{
-												"app.kubernetes.io/part-of": "argocd",
-											},
-										},
-										TopologyKey: "kubernetes.io/hostname",
-									},
-									Weight: 5,
-								},
-							},
-						},
-					},
 				},
 			},
 		},

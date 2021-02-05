@@ -9,7 +9,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	// TODO: Switch to utilpointer "k8s.io/utils/pointer"
 )
 
 func int32Ptr(i int32) *int32 { return &i }
@@ -30,8 +29,6 @@ func createApplicationControllerStatefulSet(clientset *kubernetes.Clientset, nam
 			Labels:    labels,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			// Replicas: utilpointer.Int32Ptr(1),
-			Replicas: int32Ptr(1),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app.kubernetes.io/name": name,
@@ -86,34 +83,6 @@ func createApplicationControllerStatefulSet(clientset *kubernetes.Clientset, nam
 								},
 								InitialDelaySeconds: 5,
 								PeriodSeconds:       10,
-							},
-						},
-					},
-					Affinity: &corev1.Affinity{
-						PodAntiAffinity: &corev1.PodAntiAffinity{
-							PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
-								{
-									PodAffinityTerm: corev1.PodAffinityTerm{
-										LabelSelector: &metav1.LabelSelector{
-											MatchLabels: map[string]string{
-												"app.kubernetes.io/name": name,
-											},
-										},
-										TopologyKey: "kubernetes.io/hostname",
-									},
-									Weight: 100,
-								},
-								{
-									PodAffinityTerm: corev1.PodAffinityTerm{
-										LabelSelector: &metav1.LabelSelector{
-											MatchLabels: map[string]string{
-												"app.kubernetes.io/part-of": "argocd",
-											},
-										},
-										TopologyKey: "kubernetes.io/hostname",
-									},
-									Weight: 5,
-								},
 							},
 						},
 					},
