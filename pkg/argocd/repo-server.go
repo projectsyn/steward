@@ -116,24 +116,27 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 							},
 							LivenessProbe: &corev1.Probe{
 								Handler: corev1.Handler{
-									TCPSocket: &corev1.TCPSocketAction{
+									HTTPGet: &corev1.HTTPGetAction{
+										Path: "/healthz?full=true",
 										Port: intstr.IntOrString{
-											IntVal: 8081,
+											IntVal: 8084,
 										},
 									},
 								},
-								InitialDelaySeconds: 60,
-								PeriodSeconds:       10,
+								InitialDelaySeconds: 30,
+								PeriodSeconds:       5,
+								FailureThreshold:    3,
 							},
 							ReadinessProbe: &corev1.Probe{
 								Handler: corev1.Handler{
-									TCPSocket: &corev1.TCPSocketAction{
+									HTTPGet: &corev1.HTTPGetAction{
+										Path: "/healthz",
 										Port: intstr.IntOrString{
-											IntVal: 8081,
+											IntVal: 8084,
 										},
 									},
 								},
-								InitialDelaySeconds: 1,
+								InitialDelaySeconds: 5,
 								PeriodSeconds:       10,
 							},
 						},
