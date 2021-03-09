@@ -32,6 +32,7 @@ func createApplicationControllerStatefulSet(clientset *kubernetes.Clientset, nam
 					"app.kubernetes.io/name": name,
 				},
 			},
+			ServiceName: "argocd-application-controller",
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
