@@ -1,6 +1,6 @@
 = Steward
 
-image::syn.png[]
+image::projectsyn.svg[]
 
 Welcome to the documentation of the Steward cluster agent - a Project Syn tool.
 
