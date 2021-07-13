@@ -10,14 +10,14 @@ import (
 	"k8s.io/klog"
 
 	apixinstall "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/install"
-	apixv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	apixv1beta1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	apixv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apixv1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
 
 	"github.com/projectsyn/steward/manifests"
 )
 
 func createArgoCRDs(config *rest.Config) error {
-	apixClient, err := apixv1beta1client.NewForConfig(config)
+	apixClient, err := apixv1client.NewForConfig(config)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func createArgoCRDs(config *rest.Config) error {
 		if err != nil {
 			return err
 		}
-		if crd, ok := obj.(*apixv1beta1.CustomResourceDefinition); ok {
+		if crd, ok := obj.(*apixv1.CustomResourceDefinition); ok {
 			if _, err = apixClient.CustomResourceDefinitions().Create(crd); err != nil {
 				if k8err.IsAlreadyExists(err) {
 					klog.Infof("%s CRD already exists, skip", crd.Name)
