@@ -1,5 +1,3 @@
-//go:generate go run github.com/rakyll/statik -m -src=./manifests -dest ./pkg -p manifests -f
-
 package main
 
 import (

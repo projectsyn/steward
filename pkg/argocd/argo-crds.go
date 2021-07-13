@@ -2,8 +2,7 @@ package argocd
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
+	"io/fs"
 
 	k8err "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -14,9 +13,7 @@ import (
 	apixv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apixv1beta1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 
-	// Import embedded manifests
-	_ "github.com/projectsyn/steward/pkg/manifests"
-	"github.com/rakyll/statik/fs"
+	"github.com/projectsyn/steward/manifests"
 )
 
 func createArgoCRDs(config *rest.Config) error {
@@ -25,15 +22,10 @@ func createArgoCRDs(config *rest.Config) error {
 		return err
 	}
 
-	statikFS, err := fs.New()
-	if err != nil {
-		return err
-	}
-
 	apixinstall.Install(scheme.Scheme)
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 
-	return fs.Walk(statikFS, "/", func(path string, info os.FileInfo, err error) error {
+	return fs.WalkDir(manifests.Manifests, ".", func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -41,13 +33,7 @@ func createArgoCRDs(config *rest.Config) error {
 			return nil
 		}
 
-		file, err := statikFS.Open(path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		bytes, err := ioutil.ReadAll(file)
+		bytes, err := fs.ReadFile(manifests.Manifests, path)
 		if err != nil {
 			return err
 		}
