@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage string) error {
+func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage, redisImage string) error {
 	name := "argocd-redis"
 	labels := map[string]string{
 		"app.kubernetes.io/component": "redis",
@@ -64,7 +64,7 @@ func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage
 					Containers: []corev1.Container{
 						corev1.Container{
 							Name:  "redis",
-							Image: argoRedisImage,
+							Image: redisImage,
 							Args: []string{
 								"--save",
 								"",

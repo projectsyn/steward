@@ -28,11 +28,10 @@ var (
 	argoRootAppName       = "root"
 	argoProjectName       = "syn"
 	argoAppsPath          = "manifests/apps/"
-	argoRedisImage        = "docker.io/redis:5.0.3"
 )
 
 // Apply reconciles the Argo CD deployments
-func Apply(ctx context.Context, config *rest.Config, namespace, argoImage string, apiClient *api.Client, cluster *api.Cluster) error {
+func Apply(ctx context.Context, config *rest.Config, namespace, argoImage, redisArgoImage string, apiClient *api.Client, cluster *api.Cluster) error {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
@@ -62,10 +61,10 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage string
 	}
 
 	klog.Infof("Found %d of expected %d deployments, found %d of expected %d statefulsets, bootstrapping now", foundDeploymentCount, expectedDeploymentCount, foundStatefulSetCount, expectedStatefulSetCount)
-	return bootstrapArgo(ctx, clientset, config, namespace, argoImage, apiClient, cluster)
+	return bootstrapArgo(ctx, clientset, config, namespace, argoImage, redisArgoImage, apiClient, cluster)
 }
 
-func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, argoImage string, apiClient *api.Client, cluster *api.Cluster) error {
+func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, argoImage, redisArgoImage string, apiClient *api.Client, cluster *api.Cluster) error {
 	if err := createArgoCDConfigMaps(cluster, clientset, namespace); err != nil {
 		return err
 	}
@@ -74,7 +73,7 @@ func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config 
 		return err
 	}
 
-	if err := createRedisDeployment(clientset, namespace, argoImage); err != nil {
+	if err := createRedisDeployment(clientset, namespace, argoImage, redisArgoImage); err != nil {
 		return err
 	}
 

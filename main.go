@@ -19,6 +19,11 @@ import (
 // Version is the steward version (set during build)
 var Version = "unreleased"
 
+const (
+	DefaultArgoCDImage = "quay.io/argoproj/argocd:v2.0.4@sha256:976dfbfadb817ba59f4f641597a13df7b967cd5a1059c966fa843869c9463348"
+	DefaultRedisImage  = "docker.io/redis:6.2.4@sha256:f631ff6c898339306ffdb8369add5c12303ec3946610ef8d6f1d05f575942f0c"
+)
+
 func main() {
 	klog.InitFlags(nil)
 	flag.Set("logtostderr", "true")
@@ -45,7 +50,8 @@ func main() {
 	app.Flag("region", "Cloud region this cluster is running in").StringVar(&agent.CloudRegion)
 	app.Flag("distribution", "Kubernetes distribution this cluster is running").StringVar(&agent.Distribution)
 	app.Flag("namespace", "Namespace in which steward is running").Default("syn").StringVar(&agent.Namespace)
-	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default("docker.io/argoproj/argocd:v1.8.7").StringVar(&agent.ArgoCDImage)
+	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default(DefaultArgoCDImage).StringVar(&agent.ArgoCDImage)
+	app.Flag("redis-image", "Image to be used for the Argo CD Redis deployment").Default(DefaultRedisImage).StringVar(&agent.RedisImage)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }
