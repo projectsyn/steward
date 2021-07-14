@@ -21,19 +21,15 @@ GOGET   ?= $(GOCMD) get
 .PHONY: all
 all: test build docs
 
-.PHONY: generate
-generate:
-	go generate main.go
-
 .PHONY: build
-build: generate
+build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -v \
 		-o $(BINARY_NAME) \
 		-ldflags "-X main.Version=$(VERSION)"
 	@echo built '$(VERSION)'
 
 .PHONY: test
-test: generate
+test:
 	$(GOTEST) -v ./...
 
 .PHONY: clean

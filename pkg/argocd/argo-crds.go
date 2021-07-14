@@ -2,8 +2,7 @@ package argocd
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
+	"io/fs"
 
 	k8err "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -11,21 +10,14 @@ import (
 	"k8s.io/klog"
 
 	apixinstall "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/install"
-	apixv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	apixv1beta1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	apixv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apixv1client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
 
-	// Import embedded manifests
-	_ "github.com/projectsyn/steward/pkg/manifests"
-	"github.com/rakyll/statik/fs"
+	"github.com/projectsyn/steward/manifests"
 )
 
 func createArgoCRDs(config *rest.Config) error {
-	apixClient, err := apixv1beta1client.NewForConfig(config)
-	if err != nil {
-		return err
-	}
-
-	statikFS, err := fs.New()
+	apixClient, err := apixv1client.NewForConfig(config)
 	if err != nil {
 		return err
 	}
@@ -33,7 +25,7 @@ func createArgoCRDs(config *rest.Config) error {
 	apixinstall.Install(scheme.Scheme)
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 
-	return fs.Walk(statikFS, "/", func(path string, info os.FileInfo, err error) error {
+	return fs.WalkDir(manifests.Manifests, ".", func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -41,13 +33,7 @@ func createArgoCRDs(config *rest.Config) error {
 			return nil
 		}
 
-		file, err := statikFS.Open(path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		bytes, err := ioutil.ReadAll(file)
+		bytes, err := fs.ReadFile(manifests.Manifests, path)
 		if err != nil {
 			return err
 		}
@@ -56,7 +42,7 @@ func createArgoCRDs(config *rest.Config) error {
 		if err != nil {
 			return err
 		}
-		if crd, ok := obj.(*apixv1beta1.CustomResourceDefinition); ok {
+		if crd, ok := obj.(*apixv1.CustomResourceDefinition); ok {
 			if _, err = apixClient.CustomResourceDefinitions().Create(crd); err != nil {
 				if k8err.IsAlreadyExists(err) {
 					klog.Infof("%s CRD already exists, skip", crd.Name)

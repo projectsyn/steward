@@ -28,6 +28,7 @@ type Agent struct {
 	Distribution string
 	Namespace    string
 	ArgoCDImage  string
+	RedisImage   string
 }
 
 // Run starts the cluster agent
@@ -109,7 +110,7 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		return
 	}
 
-	if err := argocd.Apply(ctx, config, a.Namespace, a.ArgoCDImage, apiClient, cluster); err != nil {
+	if err := argocd.Apply(ctx, config, a.Namespace, a.ArgoCDImage, a.RedisImage, apiClient, cluster); err != nil {
 		klog.Error(err)
 	}
 }
