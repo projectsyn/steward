@@ -19,7 +19,7 @@ var Version = "unreleased"
 
 const (
 	DefaultArgoCDImage = "quay.io/argoproj/argocd:v2.0.4@sha256:976dfbfadb817ba59f4f641597a13df7b967cd5a1059c966fa843869c9463348"
-	DefaultRedisImage  = "docker.io/redis:6.2.4@sha256:f631ff6c898339306ffdb8369add5c12303ec3946610ef8d6f1d05f575942f0c"
+	DefaultRedisImage  = "quay.io/bitnami/redis:6.2.4"
 )
 
 func main() {

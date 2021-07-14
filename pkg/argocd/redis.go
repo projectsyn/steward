@@ -65,11 +65,10 @@ func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage
 						corev1.Container{
 							Name:  "redis",
 							Image: redisImage,
-							Args: []string{
-								"--save",
-								"",
-								"--appendonly",
-								"no",
+							Env: []corev1.EnvVar{
+								{Name: "ALLOW_EMPTY_PASSWORD", Value: "yes"},
+								{Name: "REDIS_AOF_ENABLED", Value: "no"},
+								{Name: "REDIS_EXTRA_FLAGS", Value: "--save ''"},
 							},
 							Ports: []corev1.ContainerPort{
 								corev1.ContainerPort{
