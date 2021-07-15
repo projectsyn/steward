@@ -18,8 +18,8 @@ The cluster agent - working together with the [lieutenant-api](https://github.co
 
 ## Argo CD Bootstrapping
 
-Argo CD is bootstrapped (repo-server, app-controller, server) when no existing deployments are found. The required CRDs (Application, AppProject) are compiled into the binary using [statik](https://github.com/rakyll/statik).
-To update them, download the [latest manifests](https://github.com/argoproj/argo-cd/tree/master/manifests/crds) and put them in `./manifests/`. Upon running `make generate`, the manifests will be embedded into the resulting binary.
+Argo CD is bootstrapped (repo-server, app-controller, server) when no existing deployments are found. The required CRDs (Application, AppProject) are compiled into the binary using Go file embedding.
+To update them, download the [latest manifests](https://github.com/argoproj/argo-cd/tree/master/manifests/crds) and put them in `./manifests/`.
 
 ## Release
 
