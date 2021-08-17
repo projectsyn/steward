@@ -1,6 +1,7 @@
 package argocd
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
@@ -28,7 +29,7 @@ var (
 `
 )
 
-func createArgoCDConfigMaps(cluster *api.Cluster, clientset *kubernetes.Clientset, namespace string) error {
+func createArgoCDConfigMaps(ctx context.Context, cluster *api.Cluster, clientset *kubernetes.Clientset, namespace string) error {
 	if cluster.GitRepo == nil || cluster.GitRepo.Url == nil {
 		return fmt.Errorf("No git repo information received from API for cluster '%s'", cluster.Id)
 	}
@@ -50,7 +51,7 @@ func createArgoCDConfigMaps(cluster *api.Cluster, clientset *kubernetes.Clientse
 				"ssh_known_hosts": *cluster.GitRepo.HostKeys,
 			},
 		}
-		if err := createOrUpdateConfigMap(clientset, namespace, knownHostsConfigMap); err != nil {
+		if err := createOrUpdateConfigMap(ctx, clientset, namespace, knownHostsConfigMap); err != nil {
 			return nil
 		}
 	}
@@ -78,24 +79,24 @@ func createArgoCDConfigMaps(cluster *api.Cluster, clientset *kubernetes.Clientse
 		},
 	}
 
-	if err := createOrUpdateConfigMap(clientset, namespace, tlsConfigMap); err != nil {
+	if err := createOrUpdateConfigMap(ctx, clientset, namespace, tlsConfigMap); err != nil {
 		return nil
 	}
-	if err := createOrUpdateConfigMap(clientset, namespace, rbacConfigMap); err != nil {
+	if err := createOrUpdateConfigMap(ctx, clientset, namespace, rbacConfigMap); err != nil {
 		return nil
 	}
-	if err := createOrUpdateConfigMap(clientset, namespace, argoConfigMap); err != nil {
+	if err := createOrUpdateConfigMap(ctx, clientset, namespace, argoConfigMap); err != nil {
 		return nil
 	}
 	return nil
 }
 
-func createOrUpdateConfigMap(clientset *kubernetes.Clientset, namespace string, configMap *corev1.ConfigMap) error {
-	_, err := clientset.CoreV1().ConfigMaps(namespace).Create(configMap)
+func createOrUpdateConfigMap(ctx context.Context, clientset *kubernetes.Clientset, namespace string, configMap *corev1.ConfigMap) error {
+	_, err := clientset.CoreV1().ConfigMaps(namespace).Create(ctx, configMap, metav1.CreateOptions{})
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
 			klog.Infof("Update existing ConfigMap %s", configMap.Name)
-			_, err = clientset.CoreV1().ConfigMaps(namespace).Update(configMap)
+			_, err = clientset.CoreV1().ConfigMaps(namespace).Update(ctx, configMap, metav1.UpdateOptions{})
 		}
 		return err
 	}

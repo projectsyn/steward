@@ -1,6 +1,8 @@
 package argocd
 
 import (
+	"context"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
@@ -11,7 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage, redisImage string) error {
+func createRedisDeployment(ctx context.Context, clientset *kubernetes.Clientset, namespace, argoImage, redisImage string) error {
 	name := "argocd-redis"
 	labels := map[string]string{
 		"app.kubernetes.io/component": "redis",
@@ -82,7 +84,7 @@ func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage
 			},
 		},
 	}
-	if _, err := clientset.CoreV1().Services(namespace).Create(service); err != nil {
+	if _, err := clientset.CoreV1().Services(namespace).Create(ctx, service, metav1.CreateOptions{}); err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD redis service already exists")
 		} else {
@@ -91,7 +93,7 @@ func createRedisDeployment(clientset *kubernetes.Clientset, namespace, argoImage
 	} else {
 		klog.Info("Created Argo CD redis service")
 	}
-	if _, err := clientset.AppsV1().Deployments(namespace).Create(deployment); err != nil {
+	if _, err := clientset.AppsV1().Deployments(namespace).Create(ctx, deployment, metav1.CreateOptions{}); err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD redis deployment already exists")
 		} else {

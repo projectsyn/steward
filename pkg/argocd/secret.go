@@ -1,6 +1,7 @@
 package argocd
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -20,7 +21,7 @@ import (
 )
 
 // CreateArgoSecret creates a new secret for Argo CD
-func CreateArgoSecret(config *rest.Config, namespace, password string) error {
+func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, password string) error {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
@@ -31,7 +32,7 @@ func CreateArgoSecret(config *rest.Config, namespace, password string) error {
 		return err
 	}
 	pwHash := string(pwHashBytes)
-	secret, err := clientset.CoreV1().Secrets(namespace).Get(argoSecretName, metav1.GetOptions{})
+	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSecretName, metav1.GetOptions{})
 	if err == nil {
 		currentPwHash := secret.Data["admin.password"]
 		err = bcrypt.CompareHashAndPassword(currentPwHash, []byte(password))
@@ -43,7 +44,7 @@ func CreateArgoSecret(config *rest.Config, namespace, password string) error {
 		}
 		secret.StringData["admin.password"] = pwHash
 		secret.StringData["admin.passwordMtime"] = mtime
-		_, err := clientset.CoreV1().Secrets(namespace).Update(secret)
+		_, err := clientset.CoreV1().Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
@@ -63,7 +64,7 @@ func CreateArgoSecret(config *rest.Config, namespace, password string) error {
 			"admin.passwordMtime": mtime,
 		},
 	}
-	_, err = clientset.CoreV1().Secrets(namespace).Create(argoSecret)
+	_, err = clientset.CoreV1().Secrets(namespace).Create(ctx, argoSecret, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
@@ -72,12 +73,12 @@ func CreateArgoSecret(config *rest.Config, namespace, password string) error {
 }
 
 // CreateSSHSecret creates a new SSH key if it doesn't exist already and returns the public key
-func CreateSSHSecret(config *rest.Config, namespace string) (string, error) {
+func CreateSSHSecret(ctx context.Context, config *rest.Config, namespace string) (string, error) {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return "", err
 	}
-	secret, err := clientset.CoreV1().Secrets(namespace).Get(argoSSHSecretName, metav1.GetOptions{})
+	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSSHSecretName, metav1.GetOptions{})
 	if err == nil {
 		publicKey := secret.Data[argoSSHPublicKey]
 		return string(publicKey), nil
@@ -102,7 +103,7 @@ func CreateSSHSecret(config *rest.Config, namespace string) (string, error) {
 			argoSSHPublicKey:  []byte(publicKey),
 		},
 	}
-	_, err = clientset.CoreV1().Secrets(namespace).Create(sshSecret)
+	_, err = clientset.CoreV1().Secrets(namespace).Create(ctx, sshSecret, metav1.CreateOptions{})
 	if err != nil {
 		return publicKey, err
 	}

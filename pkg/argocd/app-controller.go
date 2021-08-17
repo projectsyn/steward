@@ -1,6 +1,8 @@
 package argocd
 
 import (
+	"context"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
@@ -11,7 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createApplicationControllerStatefulSet(clientset *kubernetes.Clientset, namespace, argoImage string) error {
+func createApplicationControllerStatefulSet(ctx context.Context, clientset *kubernetes.Clientset, namespace, argoImage string) error {
 	name := "argocd-application-controller"
 	labels := map[string]string{
 		"app.kubernetes.io/component": "application-controller",
@@ -90,7 +92,7 @@ func createApplicationControllerStatefulSet(clientset *kubernetes.Clientset, nam
 		},
 	}
 
-	_, err := clientset.AppsV1().StatefulSets(namespace).Create(statefulset)
+	_, err := clientset.AppsV1().StatefulSets(namespace).Create(ctx, statefulset, metav1.CreateOptions{})
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD application-controller already exists")

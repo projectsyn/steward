@@ -1,6 +1,8 @@
 package argocd
 
 import (
+	"context"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
@@ -11,7 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argoImage string) error {
+func createRepoServerDeployment(ctx context.Context, clientset *kubernetes.Clientset, namespace, argoImage string) error {
 	name := "argocd-repo-server"
 	labels := map[string]string{
 		"app.kubernetes.io/component": "server",
@@ -145,7 +147,7 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 			},
 		},
 	}
-	if _, err := clientset.CoreV1().Services(namespace).Create(service); err != nil {
+	if _, err := clientset.CoreV1().Services(namespace).Create(ctx, service, metav1.CreateOptions{}); err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD repo-server service already exists")
 		} else {
@@ -154,7 +156,7 @@ func createRepoServerDeployment(clientset *kubernetes.Clientset, namespace, argo
 	} else {
 		klog.Info("Created Argo CD repo-server service")
 	}
-	if _, err := clientset.AppsV1().Deployments(namespace).Create(deployment); err != nil {
+	if _, err := clientset.AppsV1().Deployments(namespace).Create(ctx, deployment, metav1.CreateOptions{}); err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD repo-server deployment already exists")
 		} else {

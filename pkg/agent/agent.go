@@ -65,12 +65,12 @@ func (a *Agent) Run(ctx context.Context) error {
 }
 
 func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiClient *api.Client) {
-	publicKey, err := argocd.CreateSSHSecret(config, a.Namespace)
+	publicKey, err := argocd.CreateSSHSecret(ctx, config, a.Namespace)
 	if err != nil {
 		klog.Errorf("Error creating SSH secret: %v", err)
 		return
 	}
-	if err := argocd.CreateArgoSecret(config, a.Namespace, a.Token); err != nil {
+	if err := argocd.CreateArgoSecret(ctx, config, a.Namespace, a.Token); err != nil {
 		klog.Errorf("Error creating Argo CD secret: %v", err)
 		return
 	}
