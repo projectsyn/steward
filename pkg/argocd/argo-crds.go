@@ -1,10 +1,12 @@
 package argocd
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 
 	k8err "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
@@ -16,7 +18,7 @@ import (
 	"github.com/projectsyn/steward/manifests"
 )
 
-func createArgoCRDs(config *rest.Config) error {
+func createArgoCRDs(ctx context.Context, config *rest.Config) error {
 	apixClient, err := apixv1client.NewForConfig(config)
 	if err != nil {
 		return err
@@ -43,7 +45,7 @@ func createArgoCRDs(config *rest.Config) error {
 			return err
 		}
 		if crd, ok := obj.(*apixv1.CustomResourceDefinition); ok {
-			if _, err = apixClient.CustomResourceDefinitions().Create(crd); err != nil {
+			if _, err = apixClient.CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
 				if k8err.IsAlreadyExists(err) {
 					klog.Infof("%s CRD already exists, skip", crd.Name)
 				} else {

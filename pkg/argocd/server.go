@@ -1,6 +1,8 @@
 package argocd
 
 import (
+	"context"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
@@ -11,7 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func createServerDeployment(clientset *kubernetes.Clientset, namespace, argoImage string) error {
+func createServerDeployment(ctx context.Context, clientset *kubernetes.Clientset, namespace, argoImage string) error {
 	name := "argocd-server"
 	labels := map[string]string{
 		"app.kubernetes.io/component": "server",
@@ -124,7 +126,7 @@ func createServerDeployment(clientset *kubernetes.Clientset, namespace, argoImag
 		},
 	}
 
-	_, err := clientset.AppsV1().Deployments(namespace).Create(deployment)
+	_, err := clientset.AppsV1().Deployments(namespace).Create(ctx, deployment, metav1.CreateOptions{})
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD server already exists")

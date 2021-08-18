@@ -1,6 +1,8 @@
 package argocd
 
 import (
+	"context"
+
 	"github.com/projectsyn/lieutenant-api/pkg/api"
 	k8err "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,7 +25,7 @@ var (
 	localKubernetesAPI = "https://kubernetes.default.svc"
 )
 
-func createArgoProject(cluster *api.Cluster, config *rest.Config, namespace string) error {
+func createArgoProject(ctx context.Context, cluster *api.Cluster, config *rest.Config, namespace string) error {
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
 		return err
@@ -52,7 +54,7 @@ func createArgoProject(cluster *api.Cluster, config *rest.Config, namespace stri
 		},
 	}
 
-	if _, err = argoProjectClient.Namespace(namespace).Create(project, v1.CreateOptions{}); err != nil {
+	if _, err = argoProjectClient.Namespace(namespace).Create(ctx, project, v1.CreateOptions{}); err != nil {
 		if k8err.IsAlreadyExists(err) {
 			klog.Warning("Argo Project already exists, skip")
 		} else {
@@ -64,7 +66,7 @@ func createArgoProject(cluster *api.Cluster, config *rest.Config, namespace stri
 	return nil
 }
 
-func createArgoApp(cluster *api.Cluster, config *rest.Config, namespace string) error {
+func createArgoApp(ctx context.Context, cluster *api.Cluster, config *rest.Config, namespace string) error {
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
 		return err
@@ -98,7 +100,7 @@ func createArgoApp(cluster *api.Cluster, config *rest.Config, namespace string) 
 		},
 	}
 
-	if _, err = argoAppClient.Namespace(namespace).Create(app, v1.CreateOptions{}); err != nil {
+	if _, err = argoAppClient.Namespace(namespace).Create(ctx, app, v1.CreateOptions{}); err != nil {
 		if k8err.IsAlreadyExists(err) {
 			klog.Warning("Argo App already exists, skip")
 		} else {

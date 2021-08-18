@@ -37,7 +37,7 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage, redis
 		return err
 	}
 
-	deployments, err := clientset.AppsV1().Deployments(namespace).List(metav1.ListOptions{
+	deployments, err := clientset.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/part-of=argocd",
 	})
 	if err != nil {
@@ -46,7 +46,7 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage, redis
 	expectedDeploymentCount := 3
 	foundDeploymentCount := len(deployments.Items)
 
-	statefulsets, err := clientset.AppsV1().StatefulSets(namespace).List(metav1.ListOptions{
+	statefulsets, err := clientset.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/part-of=argocd",
 	})
 	if err != nil {
@@ -65,35 +65,35 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage, redis
 }
 
 func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, argoImage, redisArgoImage string, apiClient *api.Client, cluster *api.Cluster) error {
-	if err := createArgoCDConfigMaps(cluster, clientset, namespace); err != nil {
+	if err := createArgoCDConfigMaps(ctx, cluster, clientset, namespace); err != nil {
 		return err
 	}
 
-	if err := createArgoCRDs(config); err != nil {
+	if err := createArgoCRDs(ctx, config); err != nil {
 		return err
 	}
 
-	if err := createRedisDeployment(clientset, namespace, argoImage, redisArgoImage); err != nil {
+	if err := createRedisDeployment(ctx, clientset, namespace, argoImage, redisArgoImage); err != nil {
 		return err
 	}
 
-	if err := createRepoServerDeployment(clientset, namespace, argoImage); err != nil {
+	if err := createRepoServerDeployment(ctx, clientset, namespace, argoImage); err != nil {
 		return err
 	}
 
-	if err := createServerDeployment(clientset, namespace, argoImage); err != nil {
+	if err := createServerDeployment(ctx, clientset, namespace, argoImage); err != nil {
 		return err
 	}
 
-	if err := createArgoProject(cluster, config, namespace); err != nil {
+	if err := createArgoProject(ctx, cluster, config, namespace); err != nil {
 		return err
 	}
 
-	if err := createArgoApp(cluster, config, namespace); err != nil {
+	if err := createArgoApp(ctx, cluster, config, namespace); err != nil {
 		return err
 	}
 
-	if err := createApplicationControllerStatefulSet(clientset, namespace, argoImage); err != nil {
+	if err := createApplicationControllerStatefulSet(ctx, clientset, namespace, argoImage); err != nil {
 		return err
 	}
 
