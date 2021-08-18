@@ -13,6 +13,7 @@ import (
 	"github.com/deepmap/oapi-codegen/pkg/securityprovider"
 	"github.com/projectsyn/lieutenant-api/pkg/api"
 	"github.com/projectsyn/steward/pkg/argocd"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
@@ -29,6 +30,8 @@ type Agent struct {
 	Namespace    string
 	ArgoCDImage  string
 	RedisImage   string
+
+	facts factCollector
 }
 
 // Run starts the cluster agent
@@ -48,6 +51,14 @@ func (a *Agent) Run(ctx context.Context) error {
 	}
 	if err != nil {
 		return err
+	}
+	client, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+
+	a.facts = factCollector{
+		client: client,
 	}
 
 	ticker := time.NewTicker(1 * time.Minute)
@@ -78,6 +89,11 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		GitRepo: &api.GitRepo{
 			DeployKey: &publicKey,
 		},
+	}
+	patchCluster.DynamicFacts, err = a.facts.fetchDynamicFacts(ctx)
+	if err != nil {
+		klog.Errorf("Error fetching dynamic facts: %v", err)
+		return
 	}
 
 	setFact("cloud", a.CloudType, &patchCluster)
