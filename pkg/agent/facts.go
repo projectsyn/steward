@@ -16,7 +16,7 @@ type factCollector struct {
 }
 
 func (col factCollector) fetchDynamicFacts(ctx context.Context) (*api.DynamicClusterFacts, error) {
-	kubeVersion, err := col.client.ServerVersion()
+	kubeVersion, err := col.fetchKubernetesVersion(ctx)
 	if err != nil {
 		return nil, err
 	}
