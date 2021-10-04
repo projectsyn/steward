@@ -3,7 +3,7 @@ module github.com/projectsyn/steward
 go 1.16
 
 require (
-	github.com/deepmap/oapi-codegen v1.7.0
+	github.com/deepmap/oapi-codegen v1.8.3
 	github.com/projectsyn/lieutenant-api v0.7.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
