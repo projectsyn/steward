@@ -20,8 +20,13 @@ func (col factCollector) fetchDynamicFacts(ctx context.Context) (*api.DynamicClu
 	if err != nil {
 		return nil, err
 	}
+	ocpVersion, err := col.FetchOpenshiftVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
 	facts := api.DynamicClusterFacts{
 		"kubernetesVersion": kubeVersion,
+		"openshiftVersion":  ocpVersion,
 	}
 
 	return &facts, nil
