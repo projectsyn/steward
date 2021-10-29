@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 )
 
 type OpenshiftVersionDesired struct {
@@ -12,9 +13,10 @@ type OpenshiftVersionDesired struct {
 }
 
 type OpenshiftVersionHistory struct {
-	State    string
-	Verified bool
-	Version  string
+	State          string
+	Verified       bool
+	Version        string
+	CompletionTime time.Time
 }
 
 type OpenshiftVersionStatus struct {
@@ -26,7 +28,7 @@ type OpenshiftVersion struct {
 }
 
 func (col factCollector) FetchOpenshiftVersion(ctx context.Context) (*OpenshiftVersionFact, error) {
-  // TODO degrade gracefully if we are not running openshift
+	// TODO degrade gracefully if we are not running openshift
 	body, err := col.client.RESTClient().Get().AbsPath("/apis/config.openshift.io/v1/clusterversions/version").Do(ctx).Raw()
 	if err != nil {
 		return nil, err
@@ -53,18 +55,18 @@ type OpenshiftVersionFact struct {
 
 func processOpenshiftVersion(v OpenshiftVersion) (*OpenshiftVersionFact, error) {
 	currentVersion := ""
-	// TODO sort?
+	lastedUpdate := time.Time{}
 	for _, h := range v.Status.History {
-		if h.State == "Completed" && h.Verified == true {
+		if h.State == "Completed" && h.Verified == true && h.CompletionTime.After(lastedUpdate) {
 			currentVersion = h.Version
-			break
+			lastedUpdate = h.CompletionTime
 		}
 	}
 	var err error
 	versionFact := &OpenshiftVersionFact{}
 	versionFact.DesiredVersion, err = parseSematicVersion(v.Status.Desired.Version)
 	if err != nil {
-    return versionFact, fmt.Errorf("unable to parse desiredVersion: %w", err)
+		return versionFact, fmt.Errorf("unable to parse desiredVersion: %w", err)
 	}
 	versionFact.Version, err = parseSematicVersion(currentVersion)
 	if err != nil {
