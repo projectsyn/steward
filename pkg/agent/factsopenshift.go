@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 type OpenshiftVersionDesired struct {
@@ -27,10 +29,13 @@ type OpenshiftVersion struct {
 	Status OpenshiftVersionStatus
 }
 
-func (col factCollector) FetchOpenshiftVersion(ctx context.Context) (*OpenshiftVersionFact, error) {
-	// TODO degrade gracefully if we are not running openshift
+func (col factCollector) fetchOpenshiftVersion(ctx context.Context) (*OpenshiftVersionFact, error) {
 	body, err := col.client.RESTClient().Get().AbsPath("/apis/config.openshift.io/v1/clusterversions/version").Do(ctx).Raw()
 	if err != nil {
+		if errors.IsNotFound(err) {
+			// API server doesn't know `clusterversions` or there is no resource, so we are not running on openshift.
+			return nil, nil
+		}
 		return nil, err
 	}
 	var version OpenshiftVersion

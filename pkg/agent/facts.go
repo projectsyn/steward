@@ -16,17 +16,19 @@ type factCollector struct {
 }
 
 func (col factCollector) fetchDynamicFacts(ctx context.Context) (*api.DynamicClusterFacts, error) {
+	facts := api.DynamicClusterFacts{}
 	kubeVersion, err := col.fetchKubernetesVersion(ctx)
 	if err != nil {
 		return nil, err
 	}
-	ocpVersion, err := col.FetchOpenshiftVersion(ctx)
+	facts["kubernetesVersion"] = kubeVersion
+
+	ocpVersion, err := col.fetchOpenshiftVersion(ctx)
 	if err != nil {
 		return nil, err
 	}
-	facts := api.DynamicClusterFacts{
-		"kubernetesVersion": kubeVersion,
-		"openshiftVersion":  ocpVersion,
+	if ocpVersion != nil {
+		facts["openshiftVersion"] = ocpVersion
 	}
 
 	return &facts, nil
