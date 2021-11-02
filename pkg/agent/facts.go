@@ -9,6 +9,7 @@ import (
 	"github.com/projectsyn/lieutenant-api/pkg/api"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/klog"
 )
 
 type factCollector struct {
@@ -16,12 +17,21 @@ type factCollector struct {
 }
 
 func (col factCollector) fetchDynamicFacts(ctx context.Context) (*api.DynamicClusterFacts, error) {
+	facts := api.DynamicClusterFacts{}
 	kubeVersion, err := col.fetchKubernetesVersion(ctx)
 	if err != nil {
-		return nil, err
+		klog.Errorf("Error fetching kubernetes version: %v", err)
 	}
-	facts := api.DynamicClusterFacts{
-		"kubernetesVersion": kubeVersion,
+	if kubeVersion != nil {
+		facts["kubernetesVersion"] = kubeVersion
+	}
+
+	ocpVersion, err := col.fetchOpenshiftVersion(ctx)
+	if err != nil {
+		klog.Errorf("Error fetching openshift version: %v", err)
+	}
+	if ocpVersion != nil {
+		facts["openshiftVersion"] = ocpVersion
 	}
 
 	return &facts, nil
