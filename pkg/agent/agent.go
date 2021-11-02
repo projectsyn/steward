@@ -93,7 +93,6 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 	patchCluster.DynamicFacts, err = a.facts.fetchDynamicFacts(ctx)
 	if err != nil {
 		klog.Errorf("Error fetching dynamic facts: %v", err)
-		return
 	}
 
 	setFact("cloud", a.CloudType, &patchCluster)

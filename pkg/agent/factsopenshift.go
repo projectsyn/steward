@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/klog"
 )
 
 type OpenshiftVersionDesired struct {
@@ -29,7 +30,7 @@ type OpenshiftVersion struct {
 	Status OpenshiftVersionStatus
 }
 
-func (col factCollector) fetchOpenshiftVersion(ctx context.Context) (*OpenshiftVersionFact, error) {
+func (col factCollector) fetchOpenshiftVersion(ctx context.Context) (*SemanticVersion, error) {
 	body, err := col.client.RESTClient().Get().AbsPath("/apis/config.openshift.io/v1/clusterversions/version").Do(ctx).Raw()
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -53,12 +54,7 @@ type SemanticVersion struct {
 	Patch string
 }
 
-type OpenshiftVersionFact struct {
-	Version        SemanticVersion
-	DesiredVersion SemanticVersion
-}
-
-func processOpenshiftVersion(v OpenshiftVersion) (*OpenshiftVersionFact, error) {
+func processOpenshiftVersion(v OpenshiftVersion) (*SemanticVersion, error) {
 	currentVersion := ""
 	lastedUpdate := time.Time{}
 	for _, h := range v.Status.History {
@@ -67,30 +63,28 @@ func processOpenshiftVersion(v OpenshiftVersion) (*OpenshiftVersionFact, error) 
 			lastedUpdate = h.CompletionTime
 		}
 	}
-	var err error
-	versionFact := &OpenshiftVersionFact{}
-	versionFact.DesiredVersion, err = parseSematicVersion(v.Status.Desired.Version)
+	versionFact, err := parseSematicVersion(currentVersion)
 	if err != nil {
-		return versionFact, fmt.Errorf("unable to parse desiredVersion: %w", err)
+		klog.Warningf("unable to parse version %v : %s\nFalling back to desired version", versionFact, err)
+		versionFact, err = parseSematicVersion(v.Status.Desired.Version)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse desiredVersion: %w", err)
+		}
 	}
-	versionFact.Version, err = parseSematicVersion(currentVersion)
-	if err != nil {
-		return versionFact, fmt.Errorf("unable to parse version: %w", err)
-	}
-	return versionFact, nil
+	return versionFact, err
 }
 
-func parseSematicVersion(s string) (SemanticVersion, error) {
+func parseSematicVersion(s string) (*SemanticVersion, error) {
 	vs := strings.Split(s, ".")
 	if len(vs) != 3 {
-		return SemanticVersion{
+		return &SemanticVersion{
 			Major: "",
 			Minor: "",
 			Patch: "",
 		}, fmt.Errorf("unknown version %q", s)
 
 	}
-	v := SemanticVersion{}
+	v := &SemanticVersion{}
 	major := trimVersion(vs[0])
 	if major == "" {
 		return v, fmt.Errorf("unknown major version %q", vs[0])

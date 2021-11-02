@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func mustTime(s string) time.Time {
@@ -18,13 +19,13 @@ func mustTime(s string) time.Time {
 func TestProcessOpenshiftVersion(t *testing.T) {
 	tcs := map[string]struct {
 		in   OpenshiftVersion
-		out  OpenshiftVersionFact
+		out  SemanticVersion
 		fail bool
 	}{
 		"standard": {
 			in: OpenshiftVersion{Status: OpenshiftVersionStatus{
 				Desired: OpenshiftVersionDesired{
-					Version: "4.8.11",
+					Version: "4.8.13",
 				},
 				History: []OpenshiftVersionHistory{
 					{
@@ -35,17 +36,10 @@ func TestProcessOpenshiftVersion(t *testing.T) {
 					},
 				},
 			}},
-			out: OpenshiftVersionFact{
-				Version: SemanticVersion{
-					Major: "4",
-					Minor: "8",
-					Patch: "11",
-				},
-				DesiredVersion: SemanticVersion{
-					Major: "4",
-					Minor: "8",
-					Patch: "11",
-				},
+			out: SemanticVersion{
+				Major: "4",
+				Minor: "8",
+				Patch: "11",
 			},
 			fail: false,
 		},
@@ -75,17 +69,10 @@ func TestProcessOpenshiftVersion(t *testing.T) {
 					},
 				},
 			}},
-			out: OpenshiftVersionFact{
-				Version: SemanticVersion{
-					Major: "4",
-					Minor: "7",
-					Patch: "4",
-				},
-				DesiredVersion: SemanticVersion{
-					Major: "4",
-					Minor: "8",
-					Patch: "11",
-				},
+			out: SemanticVersion{
+				Major: "4",
+				Minor: "7",
+				Patch: "4",
 			},
 			fail: false,
 		},
@@ -115,17 +102,10 @@ func TestProcessOpenshiftVersion(t *testing.T) {
 					},
 				},
 			}},
-			out: OpenshiftVersionFact{
-				Version: SemanticVersion{
-					Major: "4",
-					Minor: "8",
-					Patch: "4",
-				},
-				DesiredVersion: SemanticVersion{
-					Major: "4",
-					Minor: "8",
-					Patch: "11",
-				},
+			out: SemanticVersion{
+				Major: "4",
+				Minor: "8",
+				Patch: "4",
 			},
 			fail: false,
 		},
@@ -136,17 +116,47 @@ func TestProcessOpenshiftVersion(t *testing.T) {
 				},
 				History: []OpenshiftVersionHistory{},
 			}},
-			out: OpenshiftVersionFact{
-				Version: SemanticVersion{},
-				DesiredVersion: SemanticVersion{
-					Major: "4",
-					Minor: "8",
-					Patch: "11",
-				},
+			out: SemanticVersion{
+				Major: "4",
+				Minor: "8",
+				Patch: "11",
 			},
-			fail: true,
+			fail: false,
 		},
-		"invalidVersion": {
+		"invalidDesiredVersion": {
+			in: OpenshiftVersion{Status: OpenshiftVersionStatus{
+				Desired: OpenshiftVersionDesired{
+					Version: "a.8.11",
+				},
+				History: []OpenshiftVersionHistory{
+					{
+						State:          "Completed",
+						Verified:       true,
+						Version:        "4.8.2",
+						CompletionTime: mustTime("2021-10-12T08:41:44Z"),
+					},
+					{
+						State:          "Completed",
+						Verified:       true,
+						Version:        "4.8.4",
+						CompletionTime: mustTime("2021-10-13T08:41:44Z"),
+					},
+					{
+						State:          "Completed",
+						Verified:       true,
+						Version:        "4.7.4",
+						CompletionTime: mustTime("2021-10-11T08:41:44Z"),
+					},
+				},
+			}},
+			out: SemanticVersion{
+				Major: "4",
+				Minor: "8",
+				Patch: "4",
+			},
+			fail: false,
+		},
+		"invalidVersions": {
 			in: OpenshiftVersion{Status: OpenshiftVersionStatus{
 				Desired: OpenshiftVersionDesired{
 					Version: "a.8.11",
@@ -165,11 +175,19 @@ func TestProcessOpenshiftVersion(t *testing.T) {
 					{
 						State:    "Completed",
 						Verified: true,
-						Version:  "4.7.4",
+						Version:  "s4.l.4",
 					},
 				},
 			}},
-			out:  OpenshiftVersionFact{},
+			out:  SemanticVersion{},
+			fail: true,
+		},
+		"empty": {
+			in: OpenshiftVersion{Status: OpenshiftVersionStatus{
+				Desired: OpenshiftVersionDesired{},
+				History: []OpenshiftVersionHistory{},
+			}},
+			out:  SemanticVersion{},
 			fail: true,
 		},
 	}
@@ -181,6 +199,7 @@ func TestProcessOpenshiftVersion(t *testing.T) {
 				return
 			}
 			assert.NoError(t, err)
+			require.NotNil(t, v)
 			assert.Equal(t, tc.out, *v)
 		})
 	}
