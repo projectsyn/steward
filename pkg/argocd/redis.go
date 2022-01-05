@@ -67,10 +67,11 @@ func createRedisDeployment(ctx context.Context, clientset *kubernetes.Clientset,
 						corev1.Container{
 							Name:  "redis",
 							Image: redisImage,
-							Env: []corev1.EnvVar{
-								{Name: "ALLOW_EMPTY_PASSWORD", Value: "yes"},
-								{Name: "REDIS_AOF_ENABLED", Value: "no"},
-								{Name: "REDIS_EXTRA_FLAGS", Value: "--save ''"},
+							Args: []string{
+								"--save",
+								"",
+								"--appendonly",
+								"no",
 							},
 							Ports: []corev1.ContainerPort{
 								corev1.ContainerPort{
