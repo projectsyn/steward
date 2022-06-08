@@ -18,7 +18,7 @@ import (
 var Version = "unreleased"
 
 const (
-	DefaultArgoCDImage = "quay.io/argoproj/argocd:v2.2.2"
+	DefaultArgoCDImage = "quay.io/argoproj/argocd:v2.3.4"
 	DefaultRedisImage  = "docker.io/redis:6.2.4@sha256:f631ff6c898339306ffdb8369add5c12303ec3946610ef8d6f1d05f575942f0c"
 )
 
