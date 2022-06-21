@@ -13,5 +13,14 @@
       "packagePatterns": ["^k8s.io", "^sigs.k8s.io"],
       "enabled": false
     }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^images.go$"],
+      "matchStrings": [
+        "^\tDefault.*?Image = \"(?<depName>.*?):(?<currentValue>.*?)\"$"
+      ],
+      "datasourceTemplate": "docker"
+    }
   ]
 }
