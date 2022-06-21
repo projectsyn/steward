@@ -17,13 +17,6 @@ import (
 // Version is the steward version (set during build)
 var Version = "unreleased"
 
-const (
-	// DefaultArgoCDImage is the default image to use for the ArgoCD deployment.
-	// You should also update the CRDs in the manifests/ directory to match this version.
-	DefaultArgoCDImage = "quay.io/argoproj/argocd:v2.3.4"
-	DefaultRedisImage  = "docker.io/redis:6.2.4@sha256:f631ff6c898339306ffdb8369add5c12303ec3946610ef8d6f1d05f575942f0c"
-)
-
 func main() {
 	klog.InitFlags(nil)
 	flag.Set("logtostderr", "true")
