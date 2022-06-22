@@ -16,7 +16,7 @@
   ],
   "regexManagers": [
     {
-      "fileMatch": ["^images.go$"],
+      "fileMatch": ["^pkg/images/images.go$"],
       "matchStrings": [
         "\\tDefault.*?Image\\s+= \"(?<depName>.*?):(?<currentValue>.*?)\"(\n|$)"
       ],

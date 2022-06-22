@@ -1,4 +1,4 @@
-package main
+package images
 
 // WARNING: Renovate updates the images in this file. If adding changes double check the
 // renovate.json file and it's regexManagers.

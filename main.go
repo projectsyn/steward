@@ -1,3 +1,4 @@
+//go:generate go run ./build/download-manifests
 package main
 
 import (
@@ -10,6 +11,7 @@ import (
 	"k8s.io/klog"
 
 	"github.com/projectsyn/steward/pkg/agent"
+	"github.com/projectsyn/steward/pkg/images"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -43,8 +45,8 @@ func main() {
 	app.Flag("region", "Cloud region this cluster is running in").StringVar(&agent.CloudRegion)
 	app.Flag("distribution", "Kubernetes distribution this cluster is running").StringVar(&agent.Distribution)
 	app.Flag("namespace", "Namespace in which steward is running").Default("syn").StringVar(&agent.Namespace)
-	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default(DefaultArgoCDImage).StringVar(&agent.ArgoCDImage)
-	app.Flag("redis-image", "Image to be used for the Argo CD Redis deployment").Default(DefaultRedisImage).StringVar(&agent.RedisImage)
+	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default(images.DefaultArgoCDImage).StringVar(&agent.ArgoCDImage)
+	app.Flag("redis-image", "Image to be used for the Argo CD Redis deployment").Default(images.DefaultRedisImage).StringVar(&agent.RedisImage)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }
