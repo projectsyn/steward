@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,25 +13,25 @@ import (
 )
 
 var crds = []string{
-	"https://raw.githubusercontent.com/argoproj/argo-cd/{{VERSION}}/manifests/crds/application-crd.yaml",
-	"https://raw.githubusercontent.com/argoproj/argo-cd/{{VERSION}}/manifests/crds/appproject-crd.yaml",
+	"https://raw.githubusercontent.com/argoproj/argo-cd/%s/manifests/crds/application-crd.yaml",
+	"https://raw.githubusercontent.com/argoproj/argo-cd/%s/manifests/crds/appproject-crd.yaml",
 }
 
 func main() {
 	path, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		abort(fmt.Errorf("failed to get current directory: %w", err))
 	}
 
 	version, err := version(images.DefaultArgoCDImage)
 	if err != nil {
-		panic(err)
+		abort(fmt.Errorf("failed to get version: %w", err))
 	}
 
 	for _, urlTmpl := range crds {
-		err := download(strings.Replace(urlTmpl, "{{VERSION}}", version, -1), path+"/manifests/")
+		err := download(fmt.Sprintf(urlTmpl, version), path+"/manifests/")
 		if err != nil {
-			panic(err)
+			abort(fmt.Errorf("failed to download CRD: %w", err))
 		}
 	}
 }
@@ -39,7 +40,7 @@ func version(img string) (string, error) {
 	_, version, found := strings.Cut(img, ":")
 
 	if !found {
-		return "", fmt.Errorf("Invalid format, expected to find ':' image: %s", images.DefaultArgoCDImage)
+		return "", fmt.Errorf("invalid format, expected to find ':' image: %s", images.DefaultArgoCDImage)
 	}
 
 	return version, nil
@@ -56,10 +57,17 @@ func download(url string, dir string) error {
 		return err
 	}
 	defer f.Close()
-	fmt.Fprintln(f, "# This file is overridden with `go generate`. DO NOT EDIT.")
-	fmt.Fprintln(f, "# Download using go generate ./...")
-	fmt.Fprintf(f, "# url: %s\n", url)
-	io.Copy(f, r.Body)
 
-	return nil
+	h := &bytes.Buffer{}
+	h.WriteString("# This file is overridden with `go generate`. DO NOT EDIT.\n")
+	h.WriteString("# Download using go generate ./...\n")
+	h.WriteString("# url: " + url + "\n")
+
+	_, err = io.Copy(f, io.MultiReader(h, r.Body))
+	return err
+}
+
+func abort(err error) {
+	fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+	os.Exit(1)
 }
