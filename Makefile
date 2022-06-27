@@ -14,6 +14,7 @@ antora_preview_cmd ?= $(docker_cmd) run --rm --publish 35729:35729 --publish 202
 # Go parameters
 GOCMD   ?= go
 GOBUILD ?= $(GOCMD) build
+GOGEN   ?= $(GOCMD) generate
 GOCLEAN ?= $(GOCMD) clean
 GOTEST  ?= $(GOCMD) test
 GOGET   ?= $(GOCMD) get
@@ -21,15 +22,19 @@ GOGET   ?= $(GOCMD) get
 .PHONY: all
 all: test build docs
 
+.PHONY: generate
+generate:
+	$(GOGEN) ./...
+
 .PHONY: build
-build:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -v \
+build: generate
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) \
 		-o $(BINARY_NAME) \
 		-ldflags "-X main.Version=$(VERSION)"
 	@echo built '$(VERSION)'
 
 .PHONY: test
-test:
+test: generate
 	$(GOTEST) -v ./...
 
 .PHONY: clean

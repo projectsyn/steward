@@ -5,12 +5,25 @@ on:
     - master
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '>=1.18.0'
+    - name: Go generate
+      run: make generate
+    - name: Check for uncommited differences
+      run: git diff --exit-code -- manifests/ || ( echo 'Please run `go generate ./...`' ; exit 3 )
+
   tests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Build image
       run: make docker
+
   docs:
     runs-on: ubuntu-latest
     steps:
