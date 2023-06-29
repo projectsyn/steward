@@ -8,8 +8,8 @@ IMAGE_NAME ?= docker.io/vshn/$(BINARY_NAME):$(VERSION)
 docker_cmd  ?= docker
 docker_opts ?= --rm --tty --user "$$(id -u)"
 
-vale_cmd           ?= $(docker_cmd) run $(docker_opts) --volume "$${PWD}"/docs/modules/ROOT/pages:/pages vshn/vale:2.6.1 --minAlertLevel=error --config=/pages/.vale.ini /pages
-antora_preview_cmd ?= $(docker_cmd) run --rm --publish 35729:35729 --publish 2020:2020 --volume "${PWD}":/preview/antora vshn/antora-preview:3.0.1.1 --style=syn --antora=docs
+vale_cmd           ?= $(docker_cmd) run $(docker_opts) --volume "$${PWD}"/docs/modules/ROOT/pages:/pages ghcr.io/vshn/vale:2.15.5 --minAlertLevel=error --config=/pages/.vale.ini /pages
+antora_preview_cmd ?= $(docker_cmd) run --rm --publish 35729:35729 --publish 2020:2020 --volume "${PWD}":/preview/antora ghcr.io/vshn/antora-preview:3.1.2.3 --style=syn --antora=docs
 
 # Go parameters
 GOCMD   ?= go
