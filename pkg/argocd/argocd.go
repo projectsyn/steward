@@ -4,11 +4,14 @@ import (
 	"context"
 
 	"github.com/projectsyn/lieutenant-api/pkg/api"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var (
@@ -35,6 +38,27 @@ func Apply(ctx context.Context, config *rest.Config, namespace, argoImage, redis
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
+	}
+
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+
+	gvr := schema.GroupVersionResource{
+		Group: "argoproj.io",
+		Version: "v1alpha1",
+		Resource: "argocds",
+	}
+
+	argos, err := dynamicClient.Resource(gvr).Namespace(namespace).List(ctx, metav1.ListOptions{})
+
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+
+	if err == nil && len(argos.Items) > 0 {
+		return nil
 	}
 
 	deployments, err := clientset.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{
