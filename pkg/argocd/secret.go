@@ -34,6 +34,11 @@ func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, passw
 	pwHash := string(pwHashBytes)
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSecretName, metav1.GetOptions{})
 	if err == nil {
+		clusterSecret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoClusterSecretName, metav1.GetOptions{})
+		if err == nil {
+			// If the operator-managed cluster secret exists, the password is updated there instead
+			secret = clusterSecret
+		}
 		currentPwHash := secret.Data["admin.password"]
 		err = bcrypt.CompareHashAndPassword(currentPwHash, []byte(password))
 		if err == nil {
@@ -44,7 +49,7 @@ func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, passw
 		}
 		secret.StringData["admin.password"] = pwHash
 		secret.StringData["admin.passwordMtime"] = mtime
-		_, err := clientset.CoreV1().Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{})
+		_, err = clientset.CoreV1().Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
