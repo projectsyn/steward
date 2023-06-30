@@ -22,11 +22,13 @@ func createApplicationControllerStatefulSet(ctx context.Context, clientset *kube
 	for k, v := range argoLabels {
 		labels[k] = v
 	}
+	annotations := argoAnnotations
 	statefulset := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 			Labels:    labels,
+			Annotations: annotations,
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Selector: &metav1.LabelSelector{

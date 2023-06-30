@@ -18,6 +18,10 @@ var (
 	argoLabels = map[string]string{
 		"app.kubernetes.io/part-of":   "argocd",
 		"argocd.argoproj.io/instance": "argocd",
+		"steward.syn.tools/bootstrap": "true",
+	}
+	argoAnnotations = map[string]string{
+		"argocd.argoproj.io/sync-options": "Prune=false",
 	}
 	argoSSHSecretName     = "argo-ssh-key"
 	argoSSHPublicKey      = "sshPublicKey"
