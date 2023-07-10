@@ -21,15 +21,16 @@ import (
 
 // Agent configures the cluster agent
 type Agent struct {
-	APIURL       *url.URL
-	Token        string
-	ClusterID    string
-	CloudType    string
-	CloudRegion  string
-	Distribution string
-	Namespace    string
-	ArgoCDImage  string
-	RedisImage   string
+	APIURL            *url.URL
+	Token             string
+	ClusterID         string
+	CloudType         string
+	CloudRegion       string
+	Distribution      string
+	Namespace         string
+	OperatorNamespace string
+	ArgoCDImage       string
+	RedisImage        string
 
 	facts factCollector
 }
@@ -125,7 +126,7 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		return
 	}
 
-	if err := argocd.Apply(ctx, config, a.Namespace, a.ArgoCDImage, a.RedisImage, apiClient, cluster); err != nil {
+	if err := argocd.Apply(ctx, config, a.Namespace, a.OperatorNamespace, a.ArgoCDImage, a.RedisImage, apiClient, cluster); err != nil {
 		klog.Error(err)
 	}
 }

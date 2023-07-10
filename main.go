@@ -45,6 +45,7 @@ func main() {
 	app.Flag("region", "Cloud region this cluster is running in").StringVar(&agent.CloudRegion)
 	app.Flag("distribution", "Kubernetes distribution this cluster is running").StringVar(&agent.Distribution)
 	app.Flag("namespace", "Namespace in which steward is running").Default("syn").StringVar(&agent.Namespace)
+	app.Flag("operator-namespace", "Namespace in which the ArgoCD operator will be running").Default("syn-argocd-operator").StringVar(&agent.OperatorNamespace)
 	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default(images.DefaultArgoCDImage).StringVar(&agent.ArgoCDImage)
 	app.Flag("redis-image", "Image to be used for the Argo CD Redis deployment").Default(images.DefaultRedisImage).StringVar(&agent.RedisImage)
 
