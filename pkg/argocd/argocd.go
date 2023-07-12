@@ -27,6 +27,7 @@ var (
 	argoRbacConfigMapName = "argocd-rbac-cm"
 	argoConfigMapName     = "argocd-cm"
 	argoSecretName        = "argocd-secret"
+	argoClusterSecretName = "syn-argocd-cluster"
 	argoRbacName          = "argocd-application-controller"
 	argoRootAppName       = "root"
 	argoProjectName       = "syn"

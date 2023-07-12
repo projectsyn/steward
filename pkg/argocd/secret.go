@@ -1,6 +1,7 @@
 package argocd
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
@@ -31,6 +32,26 @@ func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, passw
 	if err != nil {
 		return err
 	}
+	clusterSecret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoClusterSecretName, metav1.GetOptions{})
+	if err == nil {
+		// If the operator-managed cluster secret exists, the password is updated there instead
+		currentPw := clusterSecret.Data["admin.password"]
+		if bytes.Compare(currentPw, []byte(password)) == 0 {
+			return nil
+		}
+		if clusterSecret.StringData == nil {
+			clusterSecret.StringData = map[string]string{}
+		}
+		clusterSecret.StringData["admin.password"] = password
+		clusterSecret.StringData["admin.passwordMtime"] = mtime
+		_, err = clientset.CoreV1().Secrets(namespace).Update(ctx, clusterSecret, metav1.UpdateOptions{})
+		if err != nil {
+			return err
+		}
+		klog.Info("Argo CD Cluster secret updated with new password")
+		return nil
+	}
+
 	pwHash := string(pwHashBytes)
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSecretName, metav1.GetOptions{})
 	if err == nil {
@@ -44,7 +65,7 @@ func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, passw
 		}
 		secret.StringData["admin.password"] = pwHash
 		secret.StringData["admin.passwordMtime"] = mtime
-		_, err := clientset.CoreV1().Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{})
+		_, err = clientset.CoreV1().Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
