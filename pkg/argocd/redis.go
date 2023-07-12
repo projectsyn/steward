@@ -22,11 +22,13 @@ func createRedisDeployment(ctx context.Context, clientset *kubernetes.Clientset,
 	for k, v := range argoLabels {
 		labels[k] = v
 	}
+	annotations := argoAnnotations
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 			Labels:    labels,
+			Annotations: annotations,
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
@@ -48,6 +50,7 @@ func createRedisDeployment(ctx context.Context, clientset *kubernetes.Clientset,
 			Name:      name,
 			Namespace: namespace,
 			Labels:    labels,
+			Annotations: annotations,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
