@@ -2,6 +2,7 @@ package argocd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/projectsyn/lieutenant-api/pkg/api"
@@ -62,14 +63,14 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 	if err == nil && len(argos.Items) > 0 {
 		// An ArgoCD custom resource exists in our namespace
 		err = fixArgoOperatorDeadlock(ctx, clientset, config, namespace, operatorNamespace)
-		return err
+		return fmt.Errorf("could not fix argocd operator deadlock: %w", err)
 	}
 
 	deployments, err := clientset.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: "app.kubernetes.io/part-of=argocd",
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not list ArgoCD deployments: %w", err)
 	}
 	expectedDeploymentCount := 3
 	foundDeploymentCount := len(deployments.Items)
@@ -78,7 +79,7 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 		LabelSelector: "app.kubernetes.io/part-of=argocd",
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not list ArgoCD statefulsets: %w", err)
 	}
 	expectedStatefulSetCount := 1
 	foundStatefulSetCount := len(statefulsets.Items)
@@ -134,7 +135,7 @@ func fixArgoOperatorDeadlock(ctx context.Context, clientset *kubernetes.Clientse
 	})
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not list ArgoCD config maps: %w", err)
 	}
 
 	if len(configmaps.Items) > 2 {
@@ -144,7 +145,7 @@ func fixArgoOperatorDeadlock(ctx context.Context, clientset *kubernetes.Clientse
 
 	pods, err := clientset.CoreV1().Pods(operatorNamespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not list ArgoCD operator pods: %w", err)
 	}
 	
 	for _, pod := range(pods.Items) {
@@ -157,20 +158,20 @@ func fixArgoOperatorDeadlock(ctx context.Context, clientset *kubernetes.Clientse
 	// if there still exists an argocd-secret not managed by the operator, clean it up:
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSecretName, metav1.GetOptions{})
 	if err != nil  && !errors.IsNotFound(err) {
-		return err
+		return fmt.Errorf("Could not get ArgoCD secret: %w", err)
 	}
 
 	if err == nil {
 		if len(secret.ObjectMeta.OwnerReferences) == 0 {
-			klog.Info("Deleting ArgoCD secret")
+			klog.Info("Deleting steward-managed ArgoCD secret")
 			err := clientset.CoreV1().Secrets(namespace).Delete(ctx, argoSecretName, metav1.DeleteOptions{})
 			if err != nil {
-				return err
+				return fmt.Errorf("Could not delete steward-managed ArgoCD secret: %w", err)
 			}
 		}
 	}
 
-	// reboot argo operator
+	klog.Info("Rebooting ArgoCD operator to resolve deadlock...")
 	errors := []error{}
 	for _, pod := range(pods.Items) {
 		klog.Infof("Removing pod %s", pod.Name)
