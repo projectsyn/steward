@@ -68,7 +68,10 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 	if err == nil && len(argos.Items) > 0 {
 		// An ArgoCD custom resource exists in our namespace
 		err = fixArgoOperatorDeadlock(ctx, clientset, config, namespace, operatorNamespace)
-		return fmt.Errorf("could not fix argocd operator deadlock: %w", err)
+		if err != nil {
+			return fmt.Errorf("could not fix argocd operator deadlock: %w", err)
+		}
+		return nil
 	}
 
 	deployments, err := clientset.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{
