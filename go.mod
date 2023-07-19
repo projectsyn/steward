@@ -8,7 +8,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/multierr v1.6.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
-	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	gopkg.in/alecthomas/kingpin.v2 v2.3.2
 	k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver v0.21.2
 	k8s.io/apimachinery v0.21.2
