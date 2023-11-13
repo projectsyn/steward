@@ -25,9 +25,9 @@ func createApplicationControllerStatefulSet(ctx context.Context, clientset *kube
 	annotations := argoAnnotations
 	statefulset := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
 			Annotations: annotations,
 		},
 		Spec: appsv1.StatefulSetSpec{
@@ -64,7 +64,7 @@ func createApplicationControllerStatefulSet(ctx context.Context, clientset *kube
 								},
 							},
 							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
+								ProbeHandler: corev1.ProbeHandler{
 									HTTPGet: &corev1.HTTPGetAction{
 										Path: "/healthz",
 										Port: intstr.IntOrString{
@@ -76,7 +76,7 @@ func createApplicationControllerStatefulSet(ctx context.Context, clientset *kube
 								PeriodSeconds:       10,
 							},
 							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
+								ProbeHandler: corev1.ProbeHandler{
 									HTTPGet: &corev1.HTTPGetAction{
 										Path: "/healthz",
 										Port: intstr.IntOrString{

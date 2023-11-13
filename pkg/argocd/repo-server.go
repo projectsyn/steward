@@ -25,9 +25,9 @@ func createRepoServerDeployment(ctx context.Context, clientset *kubernetes.Clien
 	annotations := argoAnnotations
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
 			Annotations: argoAnnotations,
 		},
 		Spec: corev1.ServiceSpec{
@@ -46,9 +46,9 @@ func createRepoServerDeployment(ctx context.Context, clientset *kubernetes.Clien
 	}
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
 			Annotations: annotations,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -120,7 +120,7 @@ func createRepoServerDeployment(ctx context.Context, clientset *kubernetes.Clien
 								},
 							},
 							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
+								ProbeHandler: corev1.ProbeHandler{
 									HTTPGet: &corev1.HTTPGetAction{
 										Path: "/healthz?full=true",
 										Port: intstr.IntOrString{
@@ -133,7 +133,7 @@ func createRepoServerDeployment(ctx context.Context, clientset *kubernetes.Clien
 								FailureThreshold:    3,
 							},
 							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
+								ProbeHandler: corev1.ProbeHandler{
 									HTTPGet: &corev1.HTTPGetAction{
 										Path: "/healthz",
 										Port: intstr.IntOrString{

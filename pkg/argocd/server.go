@@ -25,9 +25,9 @@ func createServerDeployment(ctx context.Context, clientset *kubernetes.Clientset
 	annotations := argoAnnotations
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
 			Annotations: annotations,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -98,7 +98,7 @@ func createServerDeployment(ctx context.Context, clientset *kubernetes.Clientset
 								},
 							},
 							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
+								ProbeHandler: corev1.ProbeHandler{
 									HTTPGet: &corev1.HTTPGetAction{
 										Path: "/healthz",
 										Port: intstr.IntOrString{
@@ -110,7 +110,7 @@ func createServerDeployment(ctx context.Context, clientset *kubernetes.Clientset
 								PeriodSeconds:       30,
 							},
 							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
+								ProbeHandler: corev1.ProbeHandler{
 									HTTPGet: &corev1.HTTPGetAction{
 										Path: "/healthz",
 										Port: intstr.IntOrString{
