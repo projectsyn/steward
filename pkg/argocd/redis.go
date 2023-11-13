@@ -25,9 +25,9 @@ func createRedisDeployment(ctx context.Context, clientset *kubernetes.Clientset,
 	annotations := argoAnnotations
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
 			Annotations: annotations,
 		},
 		Spec: corev1.ServiceSpec{
@@ -47,9 +47,9 @@ func createRedisDeployment(ctx context.Context, clientset *kubernetes.Clientset,
 	}
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
 			Annotations: annotations,
 		},
 		Spec: appsv1.DeploymentSpec{

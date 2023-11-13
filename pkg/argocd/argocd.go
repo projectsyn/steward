@@ -54,8 +54,8 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 	}
 
 	gvr := schema.GroupVersionResource{
-		Group: "argoproj.io",
-		Version: "v1alpha1",
+		Group:    "argoproj.io",
+		Version:  "v1alpha1",
 		Resource: "argocds",
 	}
 
@@ -155,8 +155,8 @@ func fixArgoOperatorDeadlock(ctx context.Context, clientset *kubernetes.Clientse
 	if err != nil {
 		return fmt.Errorf("Could not list ArgoCD operator pods: %w", err)
 	}
-	
-	for _, pod := range(pods.Items) {
+
+	for _, pod := range pods.Items {
 		if pod.CreationTimestamp.Time.After(time.Now().Add(-10 * time.Minute)) {
 			klog.Info("ArgoCD Operator pod was recently created, waiting to reboot...")
 			return nil
@@ -165,7 +165,7 @@ func fixArgoOperatorDeadlock(ctx context.Context, clientset *kubernetes.Clientse
 
 	// if there still exists an argocd-secret not managed by the operator, clean it up:
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSecretName, metav1.GetOptions{})
-	if err != nil  && !errors.IsNotFound(err) {
+	if err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("Could not get ArgoCD secret: %w", err)
 	}
 
@@ -181,11 +181,11 @@ func fixArgoOperatorDeadlock(ctx context.Context, clientset *kubernetes.Clientse
 
 	klog.Info("Rebooting ArgoCD operator to resolve deadlock...")
 	errors := []error{}
-	for _, pod := range(pods.Items) {
+	for _, pod := range pods.Items {
 		klog.Infof("Removing pod %s", pod.Name)
 		err := clientset.CoreV1().Pods(operatorNamespace).Delete(ctx, pod.Name, metav1.DeleteOptions{})
 		errors = append(errors, err)
 	}
 
-	return multierr.Combine(errors ...)
+	return multierr.Combine(errors...)
 }

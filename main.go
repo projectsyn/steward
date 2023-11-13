@@ -13,7 +13,7 @@ import (
 	"github.com/projectsyn/steward/pkg/agent"
 	"github.com/projectsyn/steward/pkg/images"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 )
 
 // Version is the steward version (set during build)
