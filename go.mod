@@ -6,7 +6,7 @@ toolchain go1.21.4
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.3.2
-	github.com/deepmap/oapi-codegen v1.16.2
+	github.com/deepmap/oapi-codegen/v2 v2.0.0
 	github.com/projectsyn/lieutenant-api v0.11.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/multierr v1.11.0
@@ -32,6 +32,7 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/deepmap/oapi-codegen v1.16.2 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/flosch/pongo2/v4 v4.0.2 // indirect
