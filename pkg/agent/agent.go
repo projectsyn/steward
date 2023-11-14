@@ -36,6 +36,10 @@ type Agent struct {
 	// The configmap containing additional facts to be added to the dynamic facts
 	AdditionalFactsConfigMap string
 
+	// Reference to the OpenShift OAuth route to be added to the dynamic facts
+	OCPOAuthRouteNamespace string
+	OCPOAuthRouteName      string
+
 	facts facts.FactCollector
 }
 
@@ -64,6 +68,9 @@ func (a *Agent) Run(ctx context.Context) error {
 
 	a.facts = facts.FactCollector{
 		Client: client,
+
+		OAuthRouteNamespace: a.OCPOAuthRouteNamespace,
+		OAuthRouteName:      a.OCPOAuthRouteName,
 
 		AdditionalFactsConfigMapNamespace: a.Namespace,
 		AdditionalFactsConfigMapName:      a.AdditionalFactsConfigMap,

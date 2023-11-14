@@ -54,6 +54,18 @@ func main() {
 			"Additional facts added to the dynamic facts in the cluster object. Keys in the config maps data field override existing keys.").
 		Default("additional-facts").
 		StringVar(&agent.AdditionalFactsConfigMap)
+	app.
+		Flag(
+			"ocp-oauth-route-namespace",
+			"Namespace for the OpenShift OAuth route").
+		Default("openshift-authentication").
+		StringVar(&agent.OCPOAuthRouteNamespace)
+	app.
+		Flag(
+			"ocp-oauth-route-name",
+			"Name of the OpenShift OAuth route").
+		Default("oauth-openshift").
+		StringVar(&agent.OCPOAuthRouteName)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }

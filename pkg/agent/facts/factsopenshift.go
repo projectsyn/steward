@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"strings"
 	"time"
 
@@ -55,7 +56,10 @@ func (col FactCollector) fetchOpenshiftVersion(ctx context.Context) (*SemanticVe
 }
 
 func (col FactCollector) fetchOpenshiftOAuthRoute(ctx context.Context) (string, error) {
-	body, err := col.Client.RESTClient().Get().AbsPath("/apis/route.openshift.io/v1/namespaces/openshift-authentication/routes/oauth-openshift").Do(ctx).Raw()
+	body, err := col.Client.RESTClient().Get().
+		AbsPath(
+			path.Join("/apis/route.openshift.io/v1/namespaces", col.OAuthRouteNamespace, "routes", col.OAuthRouteName),
+		).Do(ctx).Raw()
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// API server doesn't know `routes` or there is no resource, so we are not running on openshift.

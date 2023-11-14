@@ -16,6 +16,9 @@ import (
 type FactCollector struct {
 	Client *kubernetes.Clientset
 
+	OAuthRouteNamespace string
+	OAuthRouteName      string
+
 	AdditionalFactsConfigMapNamespace string
 	AdditionalFactsConfigMapName      string
 }

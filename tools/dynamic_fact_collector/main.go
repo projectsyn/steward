@@ -15,6 +15,10 @@ import (
 func main() {
 	ns := flag.String("namespace", "syn", "namespace in which steward is running")
 	additionalFactsConfigMap := flag.String("additional-facts-config-map", "additional-facts", "configmap containing additional facts to be added to the dynamic facts")
+	ocpOAuthRouteNamespace := flag.String("ocp-oauth-route-namespace", "openshift-authentication", "Namespace for the OpenShift OAuth route")
+	ocpOAuthRouteName := flag.String("ocp-oauth-route-name", "oauth-openshift", "Name of the OpenShift OAuth route")
+
+	flag.Parse()
 
 	cfg := config.GetConfigOrDie()
 
@@ -25,6 +29,9 @@ func main() {
 
 	c := facts.FactCollector{
 		Client: client,
+
+		OAuthRouteNamespace: *ocpOAuthRouteNamespace,
+		OAuthRouteName:      *ocpOAuthRouteName,
 
 		AdditionalFactsConfigMapNamespace: *ns,
 		AdditionalFactsConfigMapName:      *additionalFactsConfigMap,
