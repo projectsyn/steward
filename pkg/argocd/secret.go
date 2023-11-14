@@ -27,6 +27,11 @@ func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, passw
 	if err != nil {
 		return err
 	}
+	// bcrypt supports a maximum of 72 bytes for the password
+	// https://cs.opensource.google/go/x/crypto/+/bc7d1d1eb54b3530da4f5ec31625c95d7df40231
+	if len(password) > 72 {
+		password = password[:72]
+	}
 	pwHashBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	mtime := time.Now().Format(time.RFC3339)
 	if err != nil {
