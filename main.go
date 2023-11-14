@@ -51,7 +51,7 @@ func main() {
 	app.
 		Flag(
 			"additional-facts-config-map",
-			"Additional facts added to the dynamic facts in the cluster object. Keys in the configmap's data field override existing keys.").
+			"Additional facts added to the dynamic facts in the cluster object. Keys in the configmap's data field can't override existing keys.").
 		Default("additional-facts").
 		StringVar(&agent.AdditionalFactsConfigMap)
 	app.

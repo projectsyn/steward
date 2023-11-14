@@ -25,6 +25,15 @@ type FactCollector struct {
 
 func (col FactCollector) FetchDynamicFacts(ctx context.Context) (*api.DynamicClusterFacts, error) {
 	facts := api.DynamicClusterFacts{}
+
+	additionalFacts, err := col.fetchAdditionalFacts(ctx)
+	if err != nil {
+		klog.Errorf("Error fetching additional facts: %v", err)
+	}
+	for k, v := range additionalFacts {
+		facts[k] = v
+	}
+
 	kubeVersion, err := col.fetchKubernetesVersion(ctx)
 	if err != nil {
 		klog.Errorf("Error fetching kubernetes version: %v", err)
@@ -47,14 +56,6 @@ func (col FactCollector) FetchDynamicFacts(ctx context.Context) (*api.DynamicClu
 	}
 	if ocpOAuthRoute != "" {
 		facts["openshiftOAuthRoute"] = ocpOAuthRoute
-	}
-
-	additionalFacts, err := col.fetchAdditionalFacts(ctx)
-	if err != nil {
-		klog.Errorf("Error fetching additional facts: %v", err)
-	}
-	for k, v := range additionalFacts {
-		facts[k] = v
 	}
 
 	return &facts, nil
