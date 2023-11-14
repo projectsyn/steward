@@ -1,4 +1,4 @@
-package agent
+package facts
 
 import (
 	"context"
@@ -7,16 +7,20 @@ import (
 	"unicode"
 
 	"github.com/projectsyn/lieutenant-api/pkg/api"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
 )
 
-type factCollector struct {
-	client *kubernetes.Clientset
+type FactCollector struct {
+	Client *kubernetes.Clientset
+
+	AdditionalFactsConfigMapNamespace string
+	AdditionalFactsConfigMapName      string
 }
 
-func (col factCollector) fetchDynamicFacts(ctx context.Context) (*api.DynamicClusterFacts, error) {
+func (col FactCollector) FetchDynamicFacts(ctx context.Context) (*api.DynamicClusterFacts, error) {
 	facts := api.DynamicClusterFacts{}
 	kubeVersion, err := col.fetchKubernetesVersion(ctx)
 	if err != nil {
@@ -34,12 +38,28 @@ func (col factCollector) fetchDynamicFacts(ctx context.Context) (*api.DynamicClu
 		facts["openshiftVersion"] = ocpVersion
 	}
 
+	ocpOAuthRoute, err := col.fetchOpenshiftOAuthRoute(ctx)
+	if err != nil {
+		klog.Errorf("Error fetching openshift oauth route: %v", err)
+	}
+	if ocpOAuthRoute != "" {
+		facts["openshiftOAuthRoute"] = ocpOAuthRoute
+	}
+
+	additionalFacts, err := col.fetchAdditionalFacts(ctx)
+	if err != nil {
+		klog.Errorf("Error fetching additional facts: %v", err)
+	}
+	for k, v := range additionalFacts {
+		facts[k] = v
+	}
+
 	return &facts, nil
 }
 
-func (col factCollector) fetchKubernetesVersion(ctx context.Context) (*version.Info, error) {
+func (col FactCollector) fetchKubernetesVersion(ctx context.Context) (*version.Info, error) {
 	// We are not using `col.client.ServerVersion()` to get context support
-	body, err := col.client.RESTClient().Get().AbsPath("/version").Do(ctx).Raw()
+	body, err := col.Client.RESTClient().Get().AbsPath("/version").Do(ctx).Raw()
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +88,17 @@ func processKubernetesVersion(v version.Info) (version.Info, error) {
 	}
 	v.Minor = minor
 	return v, nil
+}
+
+func (col FactCollector) fetchAdditionalFacts(ctx context.Context) (map[string]string, error) {
+	if col.AdditionalFactsConfigMapName == "" {
+		return nil, nil
+	}
+	cm, err := col.Client.CoreV1().ConfigMaps(col.AdditionalFactsConfigMapNamespace).Get(ctx, col.AdditionalFactsConfigMapName, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("unable to fetch the additional facts config map: %w", err)
+	}
+	return cm.Data, nil
 }
 
 func trimVersion(v string) string {

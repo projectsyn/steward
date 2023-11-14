@@ -48,6 +48,12 @@ func main() {
 	app.Flag("operator-namespace", "Namespace in which the ArgoCD operator will be running").Default("syn-argocd-operator").StringVar(&agent.OperatorNamespace)
 	app.Flag("argo-image", "Image to be used for the Argo CD deployments").Default(images.DefaultArgoCDImage).StringVar(&agent.ArgoCDImage)
 	app.Flag("redis-image", "Image to be used for the Argo CD Redis deployment").Default(images.DefaultRedisImage).StringVar(&agent.RedisImage)
+	app.
+		Flag(
+			"additional-facts-config-map",
+			"Additional facts added to the dynamic facts in the cluster object. Keys in the config maps data field override existing keys.").
+		Default("additional-facts").
+		StringVar(&agent.AdditionalFactsConfigMap)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 }
