@@ -12,11 +12,13 @@ import (
 
 	"github.com/deepmap/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/projectsyn/lieutenant-api/pkg/api"
-	"github.com/projectsyn/steward/pkg/argocd"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
+
+	"github.com/projectsyn/steward/pkg/agent/facts"
+	"github.com/projectsyn/steward/pkg/argocd"
 )
 
 // Agent configures the cluster agent
@@ -31,8 +33,14 @@ type Agent struct {
 	OperatorNamespace string
 	ArgoCDImage       string
 	RedisImage        string
+	// The configmap containing additional facts to be added to the dynamic facts
+	AdditionalFactsConfigMap string
 
-	facts factCollector
+	// Reference to the OpenShift OAuth route to be added to the dynamic facts
+	OCPOAuthRouteNamespace string
+	OCPOAuthRouteName      string
+
+	facts facts.FactCollector
 }
 
 // Run starts the cluster agent
@@ -58,8 +66,14 @@ func (a *Agent) Run(ctx context.Context) error {
 		return err
 	}
 
-	a.facts = factCollector{
-		client: client,
+	a.facts = facts.FactCollector{
+		Client: client,
+
+		OAuthRouteNamespace: a.OCPOAuthRouteNamespace,
+		OAuthRouteName:      a.OCPOAuthRouteName,
+
+		AdditionalFactsConfigMapNamespace: a.Namespace,
+		AdditionalFactsConfigMapName:      a.AdditionalFactsConfigMap,
 	}
 
 	ticker := time.NewTicker(1 * time.Minute)
@@ -91,7 +105,7 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 			DeployKey: &publicKey,
 		},
 	}
-	patchCluster.DynamicFacts, err = a.facts.fetchDynamicFacts(ctx)
+	patchCluster.DynamicFacts, err = a.facts.FetchDynamicFacts(ctx)
 	if err != nil {
 		klog.Errorf("Error fetching dynamic facts: %v", err)
 	}

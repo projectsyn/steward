@@ -1,9 +1,10 @@
-package agent
+package facts
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"strings"
 	"time"
 
@@ -30,8 +31,14 @@ type OpenshiftVersion struct {
 	Status OpenshiftVersionStatus
 }
 
-func (col factCollector) fetchOpenshiftVersion(ctx context.Context) (*SemanticVersion, error) {
-	body, err := col.client.RESTClient().Get().AbsPath("/apis/config.openshift.io/v1/clusterversions/version").Do(ctx).Raw()
+type OpenshiftRoute struct {
+	Spec struct {
+		Host string
+	}
+}
+
+func (col FactCollector) fetchOpenshiftVersion(ctx context.Context) (*SemanticVersion, error) {
+	body, err := col.Client.RESTClient().Get().AbsPath("/apis/config.openshift.io/v1/clusterversions/version").Do(ctx).Raw()
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// API server doesn't know `clusterversions` or there is no resource, so we are not running on openshift.
@@ -46,6 +53,27 @@ func (col factCollector) fetchOpenshiftVersion(ctx context.Context) (*SemanticVe
 	}
 
 	return processOpenshiftVersion(version)
+}
+
+func (col FactCollector) fetchOpenshiftOAuthRoute(ctx context.Context) (string, error) {
+	body, err := col.Client.RESTClient().Get().
+		AbsPath(
+			path.Join("/apis/route.openshift.io/v1/namespaces", col.OAuthRouteNamespace, "routes", col.OAuthRouteName),
+		).Do(ctx).Raw()
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// API server doesn't know `routes` or there is no resource, so we are not running on openshift.
+			return "", nil
+		}
+		return "", fmt.Errorf("unable to fetch the openshift route: %w", err)
+	}
+	var route OpenshiftRoute
+	err = json.Unmarshal(body, &route)
+	if err != nil {
+		return "", fmt.Errorf("unable to parse the openshift route: %w", err)
+	}
+
+	return route.Spec.Host, nil
 }
 
 type SemanticVersion struct {
