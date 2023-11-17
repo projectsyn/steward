@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.4
 
 require (
-	github.com/alecthomas/kingpin/v2 v2.3.2
+	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/deepmap/oapi-codegen/v2 v2.0.0
 	github.com/projectsyn/lieutenant-api v0.11.0
 	github.com/stretchr/testify v1.8.4
