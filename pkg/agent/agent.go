@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/deepmap/oapi-codegen/v2/pkg/securityprovider"
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/projectsyn/lieutenant-api/pkg/api"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
