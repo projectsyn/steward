@@ -2,7 +2,7 @@ module github.com/projectsyn/steward
 
 go 1.23.0
 
-toolchain go1.23.3
+toolchain go1.23.4
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
