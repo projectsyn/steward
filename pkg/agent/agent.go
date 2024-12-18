@@ -36,6 +36,9 @@ type Agent struct {
 	// The configmap containing additional facts to be added to the dynamic facts
 	AdditionalFactsConfigMap string
 
+	// The configmap containing metadata for additional root apps to deploy
+	AdditionalRootAppsConfigMap string
+
 	// Reference to the OpenShift OAuth route to be added to the dynamic facts
 	OCPOAuthRouteNamespace string
 	OCPOAuthRouteName      string
@@ -140,7 +143,7 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		return
 	}
 
-	if err := argocd.Apply(ctx, config, a.Namespace, a.OperatorNamespace, a.ArgoCDImage, a.RedisImage, apiClient, cluster); err != nil {
+	if err := argocd.Apply(ctx, config, a.Namespace, a.OperatorNamespace, a.ArgoCDImage, a.RedisImage, a.AdditionalRootAppsConfigMap, apiClient, cluster); err != nil {
 		klog.Error(err)
 	}
 }
