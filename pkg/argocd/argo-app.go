@@ -58,6 +58,11 @@ func createArgoProject(ctx context.Context, cluster *api.Cluster, config *rest.C
 		return err
 	}
 	argoProjectClient := dynamicClient.Resource(argoProjectGVR)
+
+	if _, err = argoProjectClient.Namespace(namespace).Get(ctx, name, v1.GetOptions{}); err == nil {
+		return nil
+	}
+
 	project := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": argoProjectGVR.Group + "/" + argoProjectGVR.Version,
@@ -99,6 +104,11 @@ func createArgoApp(ctx context.Context, cluster *api.Cluster, config *rest.Confi
 		return err
 	}
 	argoAppClient := dynamicClient.Resource(argoAppGVR)
+
+	if _, err = argoAppClient.Namespace(namespace).Get(ctx, name, v1.GetOptions{}); err == nil {
+		return nil
+	}
+
 	app := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": argoAppGVR.Group + "/" + argoAppGVR.Version,
