@@ -56,6 +56,12 @@ func main() {
 		StringVar(&agent.AdditionalFactsConfigMap)
 	app.
 		Flag(
+			"additional-root-apps-config-map",
+			"Config map holding metadata for additional ArgoCD root apps and app projects.").
+		Default("additional-root-apps").
+		StringVar(&agent.AdditionalRootAppsConfigMap)
+	app.
+		Flag(
 			"ocp-oauth-route-namespace",
 			"Namespace for the OpenShift OAuth route").
 		Default("openshift-authentication").
