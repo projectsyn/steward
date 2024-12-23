@@ -125,7 +125,7 @@ func createArgoApp(ctx context.Context, cluster *api.Cluster, config *rest.Confi
 				},
 				"syncPolicy": map[string]interface{}{
 					"automated": map[string]interface{}{
-						"prune":    true,
+						"prune":    false,
 						"selfHeal": true,
 					},
 				},
