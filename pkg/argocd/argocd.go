@@ -55,7 +55,7 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 
 	gvr := schema.GroupVersionResource{
 		Group:    "argoproj.io",
-		Version:  "v1alpha1",
+		Version:  "v1beta1",
 		Resource: "argocds",
 	}
 
