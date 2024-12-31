@@ -26,23 +26,23 @@ var (
 	argoAnnotations = map[string]string{
 		"argocd.argoproj.io/sync-options": "Prune=false",
 	}
-	argoSSHSecretName     = "argo-ssh-key"
-	argoSSHPublicKey      = "sshPublicKey"
-	argoSSHPrivateKey     = "sshPrivateKey"
-	argoSSHConfigMapName  = "argocd-ssh-known-hosts-cm"
-	argoTLSConfigMapName  = "argocd-tls-certs-cm"
-	argoRbacConfigMapName = "argocd-rbac-cm"
-	argoConfigMapName     = "argocd-cm"
-	argoSecretName        = "argocd-secret"
-	argoClusterSecretName = "syn-argocd-cluster"
-	argoRbacName          = "argocd-application-controller"
-	argoRootAppName       = "root"
-	argoProjectName       = "syn"
-	argoAppsPath          = "manifests/apps/"
+	argoSSHSecretName      = "argo-ssh-key"
+	argoSSHPublicKey       = "sshPublicKey"
+	argoSSHPrivateKey      = "sshPrivateKey"
+	argoSSHConfigMapName   = "argocd-ssh-known-hosts-cm"
+	argoTLSConfigMapName   = "argocd-tls-certs-cm"
+	argoRbacConfigMapName  = "argocd-rbac-cm"
+	argoConfigMapName      = "argocd-cm"
+	argoSecretName         = "argocd-secret"
+	argoClusterSecretName  = "syn-argocd-cluster"
+	argoRbacName           = "argocd-application-controller"
+	defaultArgoRootAppName = "root"
+	defaultArgoProjectName = "syn"
+	argoAppsPathPrefix     = "manifests/apps"
 )
 
 // Apply reconciles the Argo CD deployments
-func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespace, argoImage, redisArgoImage string, apiClient *api.Client, cluster *api.Cluster) error {
+func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespace, argoImage, redisArgoImage, additionalRootAppsConfigMapName string, apiClient *api.Client, cluster *api.Cluster) error {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
@@ -62,6 +62,10 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 	argos, err := dynamicClient.Resource(gvr).Namespace(namespace).List(ctx, metav1.ListOptions{})
 
 	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+
+	if err = applyAdditionalRootApps(ctx, clientset, config, namespace, additionalRootAppsConfigMapName, cluster); err != nil {
 		return err
 	}
 
@@ -122,11 +126,11 @@ func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config 
 		return err
 	}
 
-	if err := createArgoProject(ctx, cluster, config, namespace); err != nil {
+	if err := createArgoProject(ctx, cluster, config, namespace, defaultArgoProjectName); err != nil {
 		return err
 	}
 
-	if err := createArgoApp(ctx, cluster, config, namespace); err != nil {
+	if err := createArgoApp(ctx, cluster, config, namespace, defaultArgoProjectName, defaultArgoRootAppName, argoAppsPathPrefix); err != nil {
 		return err
 	}
 
@@ -188,4 +192,24 @@ func fixArgoOperatorDeadlock(ctx context.Context, clientset *kubernetes.Clientse
 	}
 
 	return multierr.Combine(errors...)
+}
+
+func applyAdditionalRootApps(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, additionalRootAppsConfigMapName string, cluster *api.Cluster) error {
+	teamNames, err := readAdditionalRootAppsConfigMap(ctx, clientset, namespace, additionalRootAppsConfigMapName)
+	if err != nil {
+		return err
+	}
+
+	for _, name := range teamNames {
+		if err := createArgoProject(ctx, cluster, config, namespace, name); err != nil {
+			return err
+		}
+
+		// apps path for additional root apps is `manifests/apps-<team name>/`.
+		if err := createArgoApp(ctx, cluster, config, namespace, name, "root-"+name, argoAppsPathPrefix+"-"+name); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
