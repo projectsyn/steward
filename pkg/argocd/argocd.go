@@ -59,16 +59,15 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 		Resource: "argocds",
 	}
 
+	if err = applyAdditionalRootApps(ctx, clientset, config, namespace, additionalRootAppsConfigMapName, cluster); err != nil {
+		return err
+	}
+
 	argos, err := dynamicClient.Resource(gvr).Namespace(namespace).List(ctx, metav1.ListOptions{})
 
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
-
-	if err = applyAdditionalRootApps(ctx, clientset, config, namespace, additionalRootAppsConfigMapName, cluster); err != nil {
-		return err
-	}
-
 	if err == nil && len(argos.Items) > 0 {
 		// An ArgoCD custom resource exists in our namespace
 		err = fixArgoOperatorDeadlock(ctx, clientset, config, namespace, operatorNamespace)
