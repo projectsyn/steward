@@ -128,6 +128,8 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		klog.Error(err)
 		return
 	}
+	defer resp.Body.Close()
+	defer io.Copy(io.Discard, resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		reason := &api.Reason{}
 		if err := json.NewDecoder(resp.Body).Decode(reason); err != nil {
