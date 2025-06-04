@@ -145,7 +145,7 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		return
 	}
 
-	if err := argocd.Apply(ctx, config, a.Namespace, a.OperatorNamespace, a.ArgoCDImage, a.RedisImage, a.AdditionalRootAppsConfigMap, apiClient, cluster); err != nil {
+	if err := argocd.Apply(ctx, config, a.Namespace, a.OperatorNamespace, a.ArgoCDImage, a.RedisImage, a.AdditionalRootAppsConfigMap, cluster); err != nil {
 		klog.Error(err)
 	}
 }

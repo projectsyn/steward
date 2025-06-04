@@ -42,7 +42,7 @@ var (
 )
 
 // Apply reconciles the Argo CD deployments
-func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespace, argoImage, redisArgoImage, additionalRootAppsConfigMapName string, apiClient *api.Client, cluster *api.Cluster) error {
+func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespace, argoImage, redisArgoImage, additionalRootAppsConfigMapName string, cluster *api.Cluster) error {
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
@@ -101,10 +101,10 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 	}
 
 	klog.Infof("Found %d of expected %d deployments, found %d of expected %d statefulsets, bootstrapping now", foundDeploymentCount, expectedDeploymentCount, foundStatefulSetCount, expectedStatefulSetCount)
-	return bootstrapArgo(ctx, clientset, config, namespace, argoImage, redisArgoImage, apiClient, cluster)
+	return bootstrapArgo(ctx, clientset, config, namespace, argoImage, redisArgoImage, cluster)
 }
 
-func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, argoImage, redisArgoImage string, apiClient *api.Client, cluster *api.Cluster) error {
+func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, argoImage, redisArgoImage string, cluster *api.Cluster) error {
 	if err := createArgoCDConfigMaps(ctx, cluster, clientset, namespace); err != nil {
 		return err
 	}
