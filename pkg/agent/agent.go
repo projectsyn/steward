@@ -94,6 +94,9 @@ func (a *Agent) Run(ctx context.Context) error {
 }
 
 func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiClient *api.Client) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
 	publicKey, err := argocd.CreateSSHSecret(ctx, config, a.Namespace)
 	if err != nil {
 		klog.Errorf("Error creating SSH secret: %v", err)
@@ -128,6 +131,8 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		klog.Error(err)
 		return
 	}
+	defer resp.Body.Close()
+	defer io.Copy(io.Discard, resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		reason := &api.Reason{}
 		if err := json.NewDecoder(resp.Body).Decode(reason); err != nil {
@@ -143,7 +148,7 @@ func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiCli
 		return
 	}
 
-	if err := argocd.Apply(ctx, config, a.Namespace, a.OperatorNamespace, a.ArgoCDImage, a.RedisImage, a.AdditionalRootAppsConfigMap, apiClient, cluster); err != nil {
+	if err := argocd.Apply(ctx, config, a.Namespace, a.OperatorNamespace, a.ArgoCDImage, a.RedisImage, a.AdditionalRootAppsConfigMap, cluster); err != nil {
 		klog.Error(err)
 	}
 }
