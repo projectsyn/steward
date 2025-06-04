@@ -94,6 +94,9 @@ func (a *Agent) Run(ctx context.Context) error {
 }
 
 func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiClient *api.Client) {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+
 	publicKey, err := argocd.CreateSSHSecret(ctx, config, a.Namespace)
 	if err != nil {
 		klog.Errorf("Error creating SSH secret: %v", err)
