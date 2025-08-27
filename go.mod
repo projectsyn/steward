@@ -8,7 +8,7 @@ require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/projectsyn/lieutenant-api v0.12.2
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	go.uber.org/multierr v1.11.0
 	golang.org/x/crypto v0.38.0
 	k8s.io/api v0.33.1
