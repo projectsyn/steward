@@ -6,6 +6,6 @@ package images
 const (
 	// DefaultArgoCDImage is the default image to use for the ArgoCD deployment.
 	// You should also update the CRDs in the manifests/ directory to match this version.
-	DefaultArgoCDImage = "quay.io/argoproj/argocd:v2.13.2"
+	DefaultArgoCDImage = "quay.io/argoproj/argocd:v2.14.20"
 	DefaultRedisImage  = "docker.io/redis:7.4.2"
 )
