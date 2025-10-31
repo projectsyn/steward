@@ -69,7 +69,6 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 	}
 
 	argos, err := dynamicClient.Resource(gvr).Namespace(namespace).List(ctx, metav1.ListOptions{})
-
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
