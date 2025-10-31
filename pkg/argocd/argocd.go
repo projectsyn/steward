@@ -36,6 +36,7 @@ var (
 	argoSecretName         = "argocd-secret"
 	argoClusterSecretName  = "syn-argocd-cluster"
 	argoRbacName           = "argocd-application-controller"
+	argoRepoSecretName     = "cluster-catalog"
 	defaultArgoRootAppName = "root"
 	defaultArgoProjectName = "syn"
 	argoAppsPathPrefix     = "manifests/apps"
@@ -110,6 +111,10 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 
 func bootstrapArgo(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, argoImage, redisArgoImage string, cluster *api.Cluster) error {
 	if err := createArgoCDConfigMaps(ctx, cluster, clientset, namespace); err != nil {
+		return err
+	}
+
+	if err := createRepoSecret(ctx, cluster, clientset, namespace); err != nil {
 		return err
 	}
 

@@ -1,6 +1,6 @@
 # This file is overridden with `go generate`. DO NOT EDIT.
 # Download using go generate ./...
-# url: https://raw.githubusercontent.com/argoproj/argo-cd/v2.13.2/manifests/crds/application-crd.yaml
+# url: https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.9/manifests/crds/application-crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -311,6 +311,14 @@ spec:
                             description: SkipCrds skips custom resource definition
                               installation step (Helm's --skip-crds)
                             type: boolean
+                          skipSchemaValidation:
+                            description: SkipSchemaValidation skips JSON schema validation
+                              (Helm's --skip-schema-validation)
+                            type: boolean
+                          skipTests:
+                            description: SkipTests skips test manifest installation
+                              step (Helm's --skip-tests).
+                            type: boolean
                           valueFiles:
                             description: ValuesFiles is a list of Helm value files
                               to use when generating a template
@@ -374,6 +382,11 @@ spec:
                             description: ForceCommonLabels specifies whether to force
                               applying common labels to resources for Kustomize apps
                             type: boolean
+                          ignoreMissingComponents:
+                            description: IgnoreMissingComponents prevents kustomize
+                              from failing when components do not exist locally by
+                              not appending them to kustomization file
+                            type: boolean
                           images:
                             description: Images is a list of Kustomize image override
                               specifications
@@ -387,6 +400,10 @@ spec:
                               KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                               uses the Kubernetes version of the target cluster.
                             type: string
+                          labelIncludeTemplates:
+                            description: LabelIncludeTemplates specifies whether to
+                              apply common labels to resource templates or not
+                            type: boolean
                           labelWithoutSelector:
                             description: LabelWithoutSelector specifies whether to
                               apply common labels to resource selectors or not
@@ -458,6 +475,10 @@ spec:
                               to use for rendering manifests
                             type: string
                         type: object
+                      name:
+                        description: Name is used to refer to a source and is displayed
+                          in the UI. It is used in multi-source Applications.
+                        type: string
                       path:
                         description: Path is a directory path within the Git repository,
                           and is only valid for applications sourced from Git.
@@ -677,6 +698,14 @@ spec:
                               description: SkipCrds skips custom resource definition
                                 installation step (Helm's --skip-crds)
                               type: boolean
+                            skipSchemaValidation:
+                              description: SkipSchemaValidation skips JSON schema
+                                validation (Helm's --skip-schema-validation)
+                              type: boolean
+                            skipTests:
+                              description: SkipTests skips test manifest installation
+                                step (Helm's --skip-tests).
+                              type: boolean
                             valueFiles:
                               description: ValuesFiles is a list of Helm value files
                                 to use when generating a template
@@ -742,6 +771,11 @@ spec:
                                 force applying common labels to resources for Kustomize
                                 apps
                               type: boolean
+                            ignoreMissingComponents:
+                              description: IgnoreMissingComponents prevents kustomize
+                                from failing when components do not exist locally
+                                by not appending them to kustomization file
+                              type: boolean
                             images:
                               description: Images is a list of Kustomize image override
                                 specifications
@@ -755,6 +789,10 @@ spec:
                                 KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                 uses the Kubernetes version of the target cluster.
                               type: string
+                            labelIncludeTemplates:
+                              description: LabelIncludeTemplates specifies whether
+                                to apply common labels to resource templates or not
+                              type: boolean
                             labelWithoutSelector:
                               description: LabelWithoutSelector specifies whether
                                 to apply common labels to resource selectors or not
@@ -826,6 +864,10 @@ spec:
                                 to use for rendering manifests
                               type: string
                           type: object
+                        name:
+                          description: Name is used to refer to a source and is displayed
+                            in the UI. It is used in multi-source Applications.
+                          type: string
                         path:
                           description: Path is a directory path within the Git repository,
                             and is only valid for applications sourced from Git.
@@ -1158,6 +1200,14 @@ spec:
                         description: SkipCrds skips custom resource definition installation
                           step (Helm's --skip-crds)
                         type: boolean
+                      skipSchemaValidation:
+                        description: SkipSchemaValidation skips JSON schema validation
+                          (Helm's --skip-schema-validation)
+                        type: boolean
+                      skipTests:
+                        description: SkipTests skips test manifest installation step
+                          (Helm's --skip-tests).
+                        type: boolean
                       valueFiles:
                         description: ValuesFiles is a list of Helm value files to
                           use when generating a template
@@ -1220,6 +1270,11 @@ spec:
                         description: ForceCommonLabels specifies whether to force
                           applying common labels to resources for Kustomize apps
                         type: boolean
+                      ignoreMissingComponents:
+                        description: IgnoreMissingComponents prevents kustomize from
+                          failing when components do not exist locally by not appending
+                          them to kustomization file
+                        type: boolean
                       images:
                         description: Images is a list of Kustomize image override
                           specifications
@@ -1233,6 +1288,10 @@ spec:
                           KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                           uses the Kubernetes version of the target cluster.
                         type: string
+                      labelIncludeTemplates:
+                        description: LabelIncludeTemplates specifies whether to apply
+                          common labels to resource templates or not
+                        type: boolean
                       labelWithoutSelector:
                         description: LabelWithoutSelector specifies whether to apply
                           common labels to resource selectors or not
@@ -1304,6 +1363,10 @@ spec:
                           use for rendering manifests
                         type: string
                     type: object
+                  name:
+                    description: Name is used to refer to a source and is displayed
+                      in the UI. It is used in multi-source Applications.
+                    type: string
                   path:
                     description: Path is a directory path within the Git repository,
                       and is only valid for applications sourced from Git.
@@ -1369,6 +1432,64 @@ spec:
                     type: string
                 required:
                 - repoURL
+                type: object
+              sourceHydrator:
+                description: SourceHydrator provides a way to push hydrated manifests
+                  back to git before syncing them to the cluster.
+                properties:
+                  drySource:
+                    description: DrySource specifies where the dry "don't repeat yourself"
+                      manifest source lives.
+                    properties:
+                      path:
+                        description: Path is a directory path within the Git repository
+                          where the manifests are located
+                        type: string
+                      repoURL:
+                        description: RepoURL is the URL to the git repository that
+                          contains the application manifests
+                        type: string
+                      targetRevision:
+                        description: TargetRevision defines the revision of the source
+                          to hydrate
+                        type: string
+                    required:
+                    - path
+                    - repoURL
+                    - targetRevision
+                    type: object
+                  hydrateTo:
+                    description: |-
+                      HydrateTo specifies an optional "staging" location to push hydrated manifests to. An external system would then
+                      have to move manifests to the SyncSource, e.g. by pull request.
+                    properties:
+                      targetBranch:
+                        description: TargetBranch is the branch to which hydrated
+                          manifests should be committed
+                        type: string
+                    required:
+                    - targetBranch
+                    type: object
+                  syncSource:
+                    description: SyncSource specifies where to sync hydrated manifests
+                      from.
+                    properties:
+                      path:
+                        description: |-
+                          Path is a directory path within the git repository where hydrated manifests should be committed to and synced
+                          from. If hydrateTo is set, this is just the path from which hydrated manifests will be synced.
+                        type: string
+                      targetBranch:
+                        description: TargetBranch is the branch to which hydrated
+                          manifests should be committed
+                        type: string
+                    required:
+                    - path
+                    - targetBranch
+                    type: object
+                required:
+                - drySource
+                - syncSource
                 type: object
               sources:
                 description: Sources is a reference to the location of the application's
@@ -1515,6 +1636,14 @@ spec:
                           description: SkipCrds skips custom resource definition installation
                             step (Helm's --skip-crds)
                           type: boolean
+                        skipSchemaValidation:
+                          description: SkipSchemaValidation skips JSON schema validation
+                            (Helm's --skip-schema-validation)
+                          type: boolean
+                        skipTests:
+                          description: SkipTests skips test manifest installation
+                            step (Helm's --skip-tests).
+                          type: boolean
                         valueFiles:
                           description: ValuesFiles is a list of Helm value files to
                             use when generating a template
@@ -1578,6 +1707,11 @@ spec:
                           description: ForceCommonLabels specifies whether to force
                             applying common labels to resources for Kustomize apps
                           type: boolean
+                        ignoreMissingComponents:
+                          description: IgnoreMissingComponents prevents kustomize
+                            from failing when components do not exist locally by not
+                            appending them to kustomization file
+                          type: boolean
                         images:
                           description: Images is a list of Kustomize image override
                             specifications
@@ -1591,6 +1725,10 @@ spec:
                             KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                             uses the Kubernetes version of the target cluster.
                           type: string
+                        labelIncludeTemplates:
+                          description: LabelIncludeTemplates specifies whether to
+                            apply common labels to resource templates or not
+                          type: boolean
                         labelWithoutSelector:
                           description: LabelWithoutSelector specifies whether to apply
                             common labels to resource selectors or not
@@ -1662,6 +1800,10 @@ spec:
                             to use for rendering manifests
                           type: string
                       type: object
+                    name:
+                      description: Name is used to refer to a source and is displayed
+                        in the UI. It is used in multi-source Applications.
+                      type: string
                     path:
                       description: Path is a directory path within the Git repository,
                         and is only valid for applications sourced from Git.
@@ -1742,6 +1884,10 @@ spec:
                       allowEmpty:
                         description: 'AllowEmpty allows apps have zero live resources
                           (default: false)'
+                        type: boolean
+                      enabled:
+                        description: Enable allows apps to explicitly control automated
+                          sync
                         type: boolean
                       prune:
                         description: 'Prune specifies whether to delete resources
@@ -1840,13 +1986,19 @@ spec:
                 description: Health contains information about the application's current
                   health status
                 properties:
+                  lastTransitionTime:
+                    description: LastTransitionTime is the time the HealthStatus was
+                      set or updated
+                    format: date-time
+                    type: string
                   message:
-                    description: Message is a human-readable informational message
-                      describing the health status
+                    description: |-
+                      Message is a human-readable informational message describing the health status
+
+                      Deprecated: this field is not used and will be removed in a future release.
                     type: string
                   status:
-                    description: Status holds the status code of the application or
-                      resource
+                    description: Status holds the status code of the application
                     type: string
                 type: object
               history:
@@ -2037,6 +2189,14 @@ spec:
                               description: SkipCrds skips custom resource definition
                                 installation step (Helm's --skip-crds)
                               type: boolean
+                            skipSchemaValidation:
+                              description: SkipSchemaValidation skips JSON schema
+                                validation (Helm's --skip-schema-validation)
+                              type: boolean
+                            skipTests:
+                              description: SkipTests skips test manifest installation
+                                step (Helm's --skip-tests).
+                              type: boolean
                             valueFiles:
                               description: ValuesFiles is a list of Helm value files
                                 to use when generating a template
@@ -2102,6 +2262,11 @@ spec:
                                 force applying common labels to resources for Kustomize
                                 apps
                               type: boolean
+                            ignoreMissingComponents:
+                              description: IgnoreMissingComponents prevents kustomize
+                                from failing when components do not exist locally
+                                by not appending them to kustomization file
+                              type: boolean
                             images:
                               description: Images is a list of Kustomize image override
                                 specifications
@@ -2115,6 +2280,10 @@ spec:
                                 KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                 uses the Kubernetes version of the target cluster.
                               type: string
+                            labelIncludeTemplates:
+                              description: LabelIncludeTemplates specifies whether
+                                to apply common labels to resource templates or not
+                              type: boolean
                             labelWithoutSelector:
                               description: LabelWithoutSelector specifies whether
                                 to apply common labels to resource selectors or not
@@ -2186,6 +2355,10 @@ spec:
                                 to use for rendering manifests
                               type: string
                           type: object
+                        name:
+                          description: Name is used to refer to a source and is displayed
+                            in the UI. It is used in multi-source Applications.
+                          type: string
                         path:
                           description: Path is a directory path within the Git repository,
                             and is only valid for applications sourced from Git.
@@ -2406,6 +2579,14 @@ spec:
                                 description: SkipCrds skips custom resource definition
                                   installation step (Helm's --skip-crds)
                                 type: boolean
+                              skipSchemaValidation:
+                                description: SkipSchemaValidation skips JSON schema
+                                  validation (Helm's --skip-schema-validation)
+                                type: boolean
+                              skipTests:
+                                description: SkipTests skips test manifest installation
+                                  step (Helm's --skip-tests).
+                                type: boolean
                               valueFiles:
                                 description: ValuesFiles is a list of Helm value files
                                   to use when generating a template
@@ -2472,6 +2653,11 @@ spec:
                                   force applying common labels to resources for Kustomize
                                   apps
                                 type: boolean
+                              ignoreMissingComponents:
+                                description: IgnoreMissingComponents prevents kustomize
+                                  from failing when components do not exist locally
+                                  by not appending them to kustomization file
+                                type: boolean
                               images:
                                 description: Images is a list of Kustomize image override
                                   specifications
@@ -2485,6 +2671,11 @@ spec:
                                   KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                   uses the Kubernetes version of the target cluster.
                                 type: string
+                              labelIncludeTemplates:
+                                description: LabelIncludeTemplates specifies whether
+                                  to apply common labels to resource templates or
+                                  not
+                                type: boolean
                               labelWithoutSelector:
                                 description: LabelWithoutSelector specifies whether
                                   to apply common labels to resource selectors or
@@ -2557,6 +2748,10 @@ spec:
                                   to use for rendering manifests
                                 type: string
                             type: object
+                          name:
+                            description: Name is used to refer to a source and is
+                              displayed in the UI. It is used in multi-source Applications.
+                            type: string
                           path:
                             description: Path is a directory path within the Git repository,
                               and is only valid for applications sourced from Git.
@@ -2925,6 +3120,14 @@ spec:
                                     description: SkipCrds skips custom resource definition
                                       installation step (Helm's --skip-crds)
                                     type: boolean
+                                  skipSchemaValidation:
+                                    description: SkipSchemaValidation skips JSON schema
+                                      validation (Helm's --skip-schema-validation)
+                                    type: boolean
+                                  skipTests:
+                                    description: SkipTests skips test manifest installation
+                                      step (Helm's --skip-tests).
+                                    type: boolean
                                   valueFiles:
                                     description: ValuesFiles is a list of Helm value
                                       files to use when generating a template
@@ -2992,6 +3195,12 @@ spec:
                                       to force applying common labels to resources
                                       for Kustomize apps
                                     type: boolean
+                                  ignoreMissingComponents:
+                                    description: IgnoreMissingComponents prevents
+                                      kustomize from failing when components do not
+                                      exist locally by not appending them to kustomization
+                                      file
+                                    type: boolean
                                   images:
                                     description: Images is a list of Kustomize image
                                       override specifications
@@ -3005,6 +3214,11 @@ spec:
                                       KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                       uses the Kubernetes version of the target cluster.
                                     type: string
+                                  labelIncludeTemplates:
+                                    description: LabelIncludeTemplates specifies whether
+                                      to apply common labels to resource templates
+                                      or not
+                                    type: boolean
                                   labelWithoutSelector:
                                     description: LabelWithoutSelector specifies whether
                                       to apply common labels to resource selectors
@@ -3077,6 +3291,11 @@ spec:
                                       Kustomize to use for rendering manifests
                                     type: string
                                 type: object
+                              name:
+                                description: Name is used to refer to a source and
+                                  is displayed in the UI. It is used in multi-source
+                                  Applications.
+                                type: string
                               path:
                                 description: Path is a directory path within the Git
                                   repository, and is only valid for applications sourced
@@ -3312,6 +3531,14 @@ spec:
                                       description: SkipCrds skips custom resource
                                         definition installation step (Helm's --skip-crds)
                                       type: boolean
+                                    skipSchemaValidation:
+                                      description: SkipSchemaValidation skips JSON
+                                        schema validation (Helm's --skip-schema-validation)
+                                      type: boolean
+                                    skipTests:
+                                      description: SkipTests skips test manifest installation
+                                        step (Helm's --skip-tests).
+                                      type: boolean
                                     valueFiles:
                                       description: ValuesFiles is a list of Helm value
                                         files to use when generating a template
@@ -3381,6 +3608,12 @@ spec:
                                         to force applying common labels to resources
                                         for Kustomize apps
                                       type: boolean
+                                    ignoreMissingComponents:
+                                      description: IgnoreMissingComponents prevents
+                                        kustomize from failing when components do
+                                        not exist locally by not appending them to
+                                        kustomization file
+                                      type: boolean
                                     images:
                                       description: Images is a list of Kustomize image
                                         override specifications
@@ -3394,6 +3627,11 @@ spec:
                                         KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                         uses the Kubernetes version of the target cluster.
                                       type: string
+                                    labelIncludeTemplates:
+                                      description: LabelIncludeTemplates specifies
+                                        whether to apply common labels to resource
+                                        templates or not
+                                      type: boolean
                                     labelWithoutSelector:
                                       description: LabelWithoutSelector specifies
                                         whether to apply common labels to resource
@@ -3467,6 +3705,11 @@ spec:
                                         of Kustomize to use for rendering manifests
                                       type: string
                                   type: object
+                                name:
+                                  description: Name is used to refer to a source and
+                                    is displayed in the UI. It is used in multi-source
+                                    Applications.
+                                  type: string
                                 path:
                                   description: Path is a directory path within the
                                     Git repository, and is only valid for applications
@@ -3624,6 +3867,12 @@ spec:
                               description: HookType specifies the type of the hook.
                                 Empty for non-hook resources
                               type: string
+                            images:
+                              description: Images contains the images related to the
+                                ResourceResult
+                              items:
+                                type: string
+                              type: array
                             kind:
                               description: Kind specifies the API kind of the resource
                               type: string
@@ -3816,6 +4065,14 @@ spec:
                                 description: SkipCrds skips custom resource definition
                                   installation step (Helm's --skip-crds)
                                 type: boolean
+                              skipSchemaValidation:
+                                description: SkipSchemaValidation skips JSON schema
+                                  validation (Helm's --skip-schema-validation)
+                                type: boolean
+                              skipTests:
+                                description: SkipTests skips test manifest installation
+                                  step (Helm's --skip-tests).
+                                type: boolean
                               valueFiles:
                                 description: ValuesFiles is a list of Helm value files
                                   to use when generating a template
@@ -3882,6 +4139,11 @@ spec:
                                   force applying common labels to resources for Kustomize
                                   apps
                                 type: boolean
+                              ignoreMissingComponents:
+                                description: IgnoreMissingComponents prevents kustomize
+                                  from failing when components do not exist locally
+                                  by not appending them to kustomization file
+                                type: boolean
                               images:
                                 description: Images is a list of Kustomize image override
                                   specifications
@@ -3895,6 +4157,11 @@ spec:
                                   KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                   uses the Kubernetes version of the target cluster.
                                 type: string
+                              labelIncludeTemplates:
+                                description: LabelIncludeTemplates specifies whether
+                                  to apply common labels to resource templates or
+                                  not
+                                type: boolean
                               labelWithoutSelector:
                                 description: LabelWithoutSelector specifies whether
                                   to apply common labels to resource selectors or
@@ -3967,6 +4234,10 @@ spec:
                                   to use for rendering manifests
                                 type: string
                             type: object
+                          name:
+                            description: Name is used to refer to a source and is
+                              displayed in the UI. It is used in multi-source Applications.
+                            type: string
                           path:
                             description: Path is a directory path within the Git repository,
                               and is only valid for applications sourced from Git.
@@ -4197,6 +4468,14 @@ spec:
                                   description: SkipCrds skips custom resource definition
                                     installation step (Helm's --skip-crds)
                                   type: boolean
+                                skipSchemaValidation:
+                                  description: SkipSchemaValidation skips JSON schema
+                                    validation (Helm's --skip-schema-validation)
+                                  type: boolean
+                                skipTests:
+                                  description: SkipTests skips test manifest installation
+                                    step (Helm's --skip-tests).
+                                  type: boolean
                                 valueFiles:
                                   description: ValuesFiles is a list of Helm value
                                     files to use when generating a template
@@ -4264,6 +4543,11 @@ spec:
                                     to force applying common labels to resources for
                                     Kustomize apps
                                   type: boolean
+                                ignoreMissingComponents:
+                                  description: IgnoreMissingComponents prevents kustomize
+                                    from failing when components do not exist locally
+                                    by not appending them to kustomization file
+                                  type: boolean
                                 images:
                                   description: Images is a list of Kustomize image
                                     override specifications
@@ -4277,6 +4561,11 @@ spec:
                                     KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                     uses the Kubernetes version of the target cluster.
                                   type: string
+                                labelIncludeTemplates:
+                                  description: LabelIncludeTemplates specifies whether
+                                    to apply common labels to resource templates or
+                                    not
+                                  type: boolean
                                 labelWithoutSelector:
                                   description: LabelWithoutSelector specifies whether
                                     to apply common labels to resource selectors or
@@ -4349,6 +4638,10 @@ spec:
                                     to use for rendering manifests
                                   type: string
                               type: object
+                            name:
+                              description: Name is used to refer to a source and is
+                                displayed in the UI. It is used in multi-source Applications.
+                              type: string
                             path:
                               description: Path is a directory path within the Git
                                 repository, and is only valid for applications sourced
@@ -4445,46 +4738,243 @@ spec:
                 description: Resources is a list of Kubernetes resources managed by
                   this application
                 items:
-                  description: |-
-                    ResourceStatus holds the current sync and health status of a resource
-                    TODO: describe members of this type
+                  description: ResourceStatus holds the current synchronization and
+                    health status of a Kubernetes resource.
                   properties:
                     group:
+                      description: Group represents the API group of the resource
+                        (e.g., "apps" for Deployments).
                       type: string
                     health:
-                      description: HealthStatus contains information about the currently
-                        observed health state of an application or resource
+                      description: Health indicates the health status of the resource
+                        (e.g., Healthy, Degraded, Progressing).
                       properties:
+                        lastTransitionTime:
+                          description: |-
+                            LastTransitionTime is the time the HealthStatus was set or updated
+
+                            Deprecated: this field is not used and will be removed in a future release.
+                          format: date-time
+                          type: string
                         message:
                           description: Message is a human-readable informational message
                             describing the health status
                           type: string
                         status:
-                          description: Status holds the status code of the application
-                            or resource
+                          description: Status holds the status code of the resource
                           type: string
                       type: object
                     hook:
+                      description: Hook is true if the resource is used as a lifecycle
+                        hook in an Argo CD application.
                       type: boolean
                     kind:
+                      description: Kind specifies the type of the resource (e.g.,
+                        "Deployment", "Service").
                       type: string
                     name:
+                      description: Name is the unique name of the resource within
+                        the namespace.
                       type: string
                     namespace:
+                      description: Namespace defines the Kubernetes namespace where
+                        the resource is located.
                       type: string
+                    requiresDeletionConfirmation:
+                      description: RequiresDeletionConfirmation is true if the resource
+                        requires explicit user confirmation before deletion.
+                      type: boolean
                     requiresPruning:
+                      description: RequiresPruning is true if the resource needs to
+                        be pruned (deleted) as part of synchronization.
                       type: boolean
                     status:
-                      description: SyncStatusCode is a type which represents possible
-                        comparison results
+                      description: Status represents the synchronization state of
+                        the resource (e.g., Synced, OutOfSync).
                       type: string
                     syncWave:
+                      description: |-
+                        SyncWave determines the order in which resources are applied during a sync operation.
+                        Lower values are applied first.
                       format: int64
                       type: integer
                     version:
+                      description: Version indicates the API version of the resource
+                        (e.g., "v1", "v1beta1").
                       type: string
                   type: object
                 type: array
+              sourceHydrator:
+                description: SourceHydrator stores information about the current state
+                  of source hydration
+                properties:
+                  currentOperation:
+                    description: CurrentOperation holds the status of the hydrate
+                      operation
+                    properties:
+                      drySHA:
+                        description: DrySHA holds the resolved revision (sha) of the
+                          dry source as of the most recent reconciliation
+                        type: string
+                      finishedAt:
+                        description: FinishedAt indicates when the hydrate operation
+                          finished
+                        format: date-time
+                        type: string
+                      hydratedSHA:
+                        description: HydratedSHA holds the resolved revision (sha)
+                          of the hydrated source as of the most recent reconciliation
+                        type: string
+                      message:
+                        description: Message contains a message describing the current
+                          status of the hydrate operation
+                        type: string
+                      phase:
+                        description: Phase indicates the status of the hydrate operation
+                        enum:
+                        - Hydrating
+                        - Failed
+                        - Hydrated
+                        type: string
+                      sourceHydrator:
+                        description: SourceHydrator holds the hydrator config used
+                          for the hydrate operation
+                        properties:
+                          drySource:
+                            description: DrySource specifies where the dry "don't
+                              repeat yourself" manifest source lives.
+                            properties:
+                              path:
+                                description: Path is a directory path within the Git
+                                  repository where the manifests are located
+                                type: string
+                              repoURL:
+                                description: RepoURL is the URL to the git repository
+                                  that contains the application manifests
+                                type: string
+                              targetRevision:
+                                description: TargetRevision defines the revision of
+                                  the source to hydrate
+                                type: string
+                            required:
+                            - path
+                            - repoURL
+                            - targetRevision
+                            type: object
+                          hydrateTo:
+                            description: |-
+                              HydrateTo specifies an optional "staging" location to push hydrated manifests to. An external system would then
+                              have to move manifests to the SyncSource, e.g. by pull request.
+                            properties:
+                              targetBranch:
+                                description: TargetBranch is the branch to which hydrated
+                                  manifests should be committed
+                                type: string
+                            required:
+                            - targetBranch
+                            type: object
+                          syncSource:
+                            description: SyncSource specifies where to sync hydrated
+                              manifests from.
+                            properties:
+                              path:
+                                description: |-
+                                  Path is a directory path within the git repository where hydrated manifests should be committed to and synced
+                                  from. If hydrateTo is set, this is just the path from which hydrated manifests will be synced.
+                                type: string
+                              targetBranch:
+                                description: TargetBranch is the branch to which hydrated
+                                  manifests should be committed
+                                type: string
+                            required:
+                            - path
+                            - targetBranch
+                            type: object
+                        required:
+                        - drySource
+                        - syncSource
+                        type: object
+                      startedAt:
+                        description: StartedAt indicates when the hydrate operation
+                          started
+                        format: date-time
+                        type: string
+                    required:
+                    - message
+                    - phase
+                    type: object
+                  lastSuccessfulOperation:
+                    description: LastSuccessfulOperation holds info about the most
+                      recent successful hydration
+                    properties:
+                      drySHA:
+                        description: DrySHA holds the resolved revision (sha) of the
+                          dry source as of the most recent reconciliation
+                        type: string
+                      hydratedSHA:
+                        description: HydratedSHA holds the resolved revision (sha)
+                          of the hydrated source as of the most recent reconciliation
+                        type: string
+                      sourceHydrator:
+                        description: SourceHydrator holds the hydrator config used
+                          for the hydrate operation
+                        properties:
+                          drySource:
+                            description: DrySource specifies where the dry "don't
+                              repeat yourself" manifest source lives.
+                            properties:
+                              path:
+                                description: Path is a directory path within the Git
+                                  repository where the manifests are located
+                                type: string
+                              repoURL:
+                                description: RepoURL is the URL to the git repository
+                                  that contains the application manifests
+                                type: string
+                              targetRevision:
+                                description: TargetRevision defines the revision of
+                                  the source to hydrate
+                                type: string
+                            required:
+                            - path
+                            - repoURL
+                            - targetRevision
+                            type: object
+                          hydrateTo:
+                            description: |-
+                              HydrateTo specifies an optional "staging" location to push hydrated manifests to. An external system would then
+                              have to move manifests to the SyncSource, e.g. by pull request.
+                            properties:
+                              targetBranch:
+                                description: TargetBranch is the branch to which hydrated
+                                  manifests should be committed
+                                type: string
+                            required:
+                            - targetBranch
+                            type: object
+                          syncSource:
+                            description: SyncSource specifies where to sync hydrated
+                              manifests from.
+                            properties:
+                              path:
+                                description: |-
+                                  Path is a directory path within the git repository where hydrated manifests should be committed to and synced
+                                  from. If hydrateTo is set, this is just the path from which hydrated manifests will be synced.
+                                type: string
+                              targetBranch:
+                                description: TargetBranch is the branch to which hydrated
+                                  manifests should be committed
+                                type: string
+                            required:
+                            - path
+                            - targetBranch
+                            type: object
+                        required:
+                        - drySource
+                        - syncSource
+                        type: object
+                    type: object
+                type: object
               sourceType:
                 description: SourceType specifies the type of this application
                 type: string
@@ -4722,6 +5212,14 @@ spec:
                                 description: SkipCrds skips custom resource definition
                                   installation step (Helm's --skip-crds)
                                 type: boolean
+                              skipSchemaValidation:
+                                description: SkipSchemaValidation skips JSON schema
+                                  validation (Helm's --skip-schema-validation)
+                                type: boolean
+                              skipTests:
+                                description: SkipTests skips test manifest installation
+                                  step (Helm's --skip-tests).
+                                type: boolean
                               valueFiles:
                                 description: ValuesFiles is a list of Helm value files
                                   to use when generating a template
@@ -4788,6 +5286,11 @@ spec:
                                   force applying common labels to resources for Kustomize
                                   apps
                                 type: boolean
+                              ignoreMissingComponents:
+                                description: IgnoreMissingComponents prevents kustomize
+                                  from failing when components do not exist locally
+                                  by not appending them to kustomization file
+                                type: boolean
                               images:
                                 description: Images is a list of Kustomize image override
                                   specifications
@@ -4801,6 +5304,11 @@ spec:
                                   KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                   uses the Kubernetes version of the target cluster.
                                 type: string
+                              labelIncludeTemplates:
+                                description: LabelIncludeTemplates specifies whether
+                                  to apply common labels to resource templates or
+                                  not
+                                type: boolean
                               labelWithoutSelector:
                                 description: LabelWithoutSelector specifies whether
                                   to apply common labels to resource selectors or
@@ -4873,6 +5381,10 @@ spec:
                                   to use for rendering manifests
                                 type: string
                             type: object
+                          name:
+                            description: Name is used to refer to a source and is
+                              displayed in the UI. It is used in multi-source Applications.
+                            type: string
                           path:
                             description: Path is a directory path within the Git repository,
                               and is only valid for applications sourced from Git.
@@ -5103,6 +5615,14 @@ spec:
                                   description: SkipCrds skips custom resource definition
                                     installation step (Helm's --skip-crds)
                                   type: boolean
+                                skipSchemaValidation:
+                                  description: SkipSchemaValidation skips JSON schema
+                                    validation (Helm's --skip-schema-validation)
+                                  type: boolean
+                                skipTests:
+                                  description: SkipTests skips test manifest installation
+                                    step (Helm's --skip-tests).
+                                  type: boolean
                                 valueFiles:
                                   description: ValuesFiles is a list of Helm value
                                     files to use when generating a template
@@ -5170,6 +5690,11 @@ spec:
                                     to force applying common labels to resources for
                                     Kustomize apps
                                   type: boolean
+                                ignoreMissingComponents:
+                                  description: IgnoreMissingComponents prevents kustomize
+                                    from failing when components do not exist locally
+                                    by not appending them to kustomization file
+                                  type: boolean
                                 images:
                                   description: Images is a list of Kustomize image
                                     override specifications
@@ -5183,6 +5708,11 @@ spec:
                                     KubeVersion specifies the Kubernetes API version to pass to Helm when templating manifests. By default, Argo CD
                                     uses the Kubernetes version of the target cluster.
                                   type: string
+                                labelIncludeTemplates:
+                                  description: LabelIncludeTemplates specifies whether
+                                    to apply common labels to resource templates or
+                                    not
+                                  type: boolean
                                 labelWithoutSelector:
                                   description: LabelWithoutSelector specifies whether
                                     to apply common labels to resource selectors or
@@ -5255,6 +5785,10 @@ spec:
                                     to use for rendering manifests
                                   type: string
                               type: object
+                            name:
+                              description: Name is used to refer to a source and is
+                                displayed in the UI. It is used in multi-source Applications.
+                              type: string
                             path:
                               description: Path is a directory path within the Git
                                 repository, and is only valid for applications sourced

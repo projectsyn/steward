@@ -2,8 +2,6 @@ package argocd
 
 import (
 	"context"
-	"fmt"
-	"net/url"
 
 	"github.com/projectsyn/lieutenant-api/pkg/api"
 	corev1 "k8s.io/api/core/v1"
@@ -15,13 +13,6 @@ import (
 )
 
 var (
-	repoString = `
-- type: git
-  url: %s
-  sshPrivateKeySecret:
-    name: %s
-    key: %s
-`
 	pluginString = `
 - name: kapitan
   generate:
@@ -30,13 +21,6 @@ var (
 )
 
 func createArgoCDConfigMaps(ctx context.Context, cluster *api.Cluster, clientset *kubernetes.Clientset, namespace string) error {
-	if cluster.GitRepo == nil || cluster.GitRepo.Url == nil {
-		return fmt.Errorf("No git repo information received from API for cluster '%s'", cluster.Id)
-	}
-	gitURL, err := url.Parse(*cluster.GitRepo.Url)
-	if err != nil {
-		return err
-	}
 	cmLabel := map[string]string{
 		"app.kubernetes.io/part-of": "argocd",
 	}
@@ -73,9 +57,9 @@ func createArgoCDConfigMaps(ctx context.Context, cluster *api.Cluster, clientset
 			Labels: cmLabel,
 		},
 		Data: map[string]string{
-			"repositories":                 fmt.Sprintf(repoString, gitURL, argoSSHSecretName, argoSSHPrivateKey),
-			"configManagementPlugins":      pluginString,
-			"application.instanceLabelKey": "argocd.argoproj.io/instance",
+			"configManagementPlugins":            pluginString,
+			"application.instanceLabelKey":       "argocd.argoproj.io/instance",
+			"application.resourceTrackingMethod": "label",
 		},
 	}
 
