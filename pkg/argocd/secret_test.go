@@ -91,7 +91,7 @@ func TestCreateArgoSecretUpdate(t *testing.T) {
 					break
 				}
 			}
-			assert.Equal(t, tc.changed, found)
+			assert.Equalf(t, tc.changed, found, "Looking for field manager %q, should find: %v, found: %v", fieldManager, tc.changed, found)
 			validateSecret(t, ctx, fakeClient, tc.secret.GetName())
 		})
 	}
