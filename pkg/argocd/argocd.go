@@ -39,6 +39,11 @@ var (
 	defaultArgoRootAppName = "root"
 	defaultArgoProjectName = "syn"
 	argoAppsPathPrefix     = "manifests/apps"
+	fieldManager           = "syn.tools/steward"
+
+	applyOpts  = metav1.ApplyOptions{FieldManager: fieldManager}
+	createOpts = metav1.CreateOptions{FieldManager: fieldManager}
+	updateOpts = metav1.UpdateOptions{FieldManager: fieldManager}
 )
 
 // Apply reconciles the Argo CD deployments

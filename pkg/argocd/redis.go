@@ -87,7 +87,7 @@ func createRedisDeployment(ctx context.Context, clientset *kubernetes.Clientset,
 			},
 		},
 	}
-	if _, err := clientset.CoreV1().Services(namespace).Create(ctx, service, metav1.CreateOptions{}); err != nil {
+	if _, err := clientset.CoreV1().Services(namespace).Create(ctx, service, createOpts); err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD redis service already exists")
 		} else {
@@ -96,7 +96,7 @@ func createRedisDeployment(ctx context.Context, clientset *kubernetes.Clientset,
 	} else {
 		klog.Info("Created Argo CD redis service")
 	}
-	if _, err := clientset.AppsV1().Deployments(namespace).Create(ctx, deployment, metav1.CreateOptions{}); err != nil {
+	if _, err := clientset.AppsV1().Deployments(namespace).Create(ctx, deployment, createOpts); err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD redis deployment already exists")
 		} else {
