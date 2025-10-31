@@ -14,7 +14,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,11 +21,7 @@ import (
 )
 
 // CreateArgoSecret creates a new secret for Argo CD
-func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, password string) error {
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return err
-	}
+func CreateArgoSecret(ctx context.Context, clientset kubernetes.Interface, namespace, password string) error {
 	// bcrypt supports a maximum of 72 bytes for the password
 	// https://cs.opensource.google/go/x/crypto/+/bc7d1d1eb54b3530da4f5ec31625c95d7df40231
 	if len(password) > 72 {
@@ -104,11 +99,7 @@ func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, passw
 }
 
 // CreateSSHSecret creates a new SSH key if it doesn't exist already and returns the public key
-func CreateSSHSecret(ctx context.Context, config *rest.Config, namespace string) (string, error) {
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return "", err
-	}
+func CreateSSHSecret(ctx context.Context, clientset kubernetes.Interface, namespace string) (string, error) {
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSSHSecretName, metav1.GetOptions{})
 	if err == nil {
 		publicKey := secret.Data[argoSSHPublicKey]
