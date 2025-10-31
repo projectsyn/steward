@@ -163,7 +163,7 @@ func TestCreateArgoClusterSecretUpdate(t *testing.T) {
 				}
 			}
 
-			assert.Equal(t, tc.changed, found)
+			assert.Equalf(t, tc.changed, found, "Looking for field manager %q, should find: %v, found: %v", fieldManager, tc.changed, found)
 			assert.Equal(t, "foo", string(argoSecret.Data["admin.password"]))
 
 			validateMtime(t, string(argoSecret.Data["admin.passwordMtime"]))
