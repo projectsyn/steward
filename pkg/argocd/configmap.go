@@ -92,11 +92,11 @@ func createArgoCDConfigMaps(ctx context.Context, cluster *api.Cluster, clientset
 }
 
 func createOrUpdateConfigMap(ctx context.Context, clientset *kubernetes.Clientset, namespace string, configMap *corev1.ConfigMap) error {
-	_, err := clientset.CoreV1().ConfigMaps(namespace).Create(ctx, configMap, metav1.CreateOptions{})
+	_, err := clientset.CoreV1().ConfigMaps(namespace).Create(ctx, configMap, createOpts)
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
 			klog.Infof("Update existing ConfigMap %s", configMap.Name)
-			_, err = clientset.CoreV1().ConfigMaps(namespace).Update(ctx, configMap, metav1.UpdateOptions{})
+			_, err = clientset.CoreV1().ConfigMaps(namespace).Update(ctx, configMap, updateOpts)
 		}
 		return err
 	}

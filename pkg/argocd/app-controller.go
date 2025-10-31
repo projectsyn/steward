@@ -94,7 +94,7 @@ func createApplicationControllerStatefulSet(ctx context.Context, clientset *kube
 		},
 	}
 
-	_, err := clientset.AppsV1().StatefulSets(namespace).Create(ctx, statefulset, metav1.CreateOptions{})
+	_, err := clientset.AppsV1().StatefulSets(namespace).Create(ctx, statefulset, createOpts)
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
 			klog.Warning("Argo CD application-controller already exists")

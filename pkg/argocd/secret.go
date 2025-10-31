@@ -13,20 +13,15 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/ssh"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/client-go/applyconfigurations/core/v1"
 )
 
 // CreateArgoSecret creates a new secret for Argo CD
-func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, password string) error {
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return err
-	}
+func CreateArgoSecret(ctx context.Context, clientset kubernetes.Interface, namespace, password string) error {
 	// bcrypt supports a maximum of 72 bytes for the password
 	// https://cs.opensource.google/go/x/crypto/+/bc7d1d1eb54b3530da4f5ec31625c95d7df40231
 	if len(password) > 72 {
@@ -44,12 +39,17 @@ func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, passw
 		if bytes.Compare(currentPw, []byte(password)) == 0 {
 			return nil
 		}
-		if clusterSecret.StringData == nil {
-			clusterSecret.StringData = map[string]string{}
+		clusterSecretApply, err := corev1.ExtractSecret(clusterSecret, fieldManager)
+		if err != nil {
+			return err
 		}
-		clusterSecret.StringData["admin.password"] = password
-		clusterSecret.StringData["admin.passwordMtime"] = mtime
-		_, err = clientset.CoreV1().Secrets(namespace).Update(ctx, clusterSecret, metav1.UpdateOptions{})
+		clusterSecretApply.WithData(
+			map[string][]byte{
+				"admin.password":      []byte(password),
+				"admin.passwordMtime": []byte(mtime),
+			},
+		)
+		_, err = clientset.CoreV1().Secrets(namespace).Apply(ctx, clusterSecretApply, metav1.ApplyOptions{FieldManager: fieldManager, Force: true})
 		if err != nil {
 			return err
 		}
@@ -57,53 +57,49 @@ func CreateArgoSecret(ctx context.Context, config *rest.Config, namespace, passw
 		return nil
 	}
 
-	pwHash := string(pwHashBytes)
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSecretName, metav1.GetOptions{})
+	if err != nil && !k8serr.IsNotFound(err) {
+		return err
+	}
+
+	argoSecret := corev1.Secret(argoSecretName, namespace)
+	infoMsg := "Created new Argo CD secret"
+	secretApplyOpts := applyOpts
 	if err == nil {
 		currentPwHash := secret.Data["admin.password"]
 		err = bcrypt.CompareHashAndPassword(currentPwHash, []byte(password))
 		if err == nil {
 			return nil
 		}
-		if secret.StringData == nil {
-			secret.StringData = map[string]string{}
-		}
-		secret.StringData["admin.password"] = pwHash
-		secret.StringData["admin.passwordMtime"] = mtime
-		_, err = clientset.CoreV1().Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{})
+		argoSecret, err = corev1.ExtractSecret(secret, fieldManager)
 		if err != nil {
 			return err
 		}
-		klog.Info("Argo CD secret updated with new password")
-		return nil
+		infoMsg = "Argo CD secret updated with new password"
+		secretApplyOpts = metav1.ApplyOptions{
+			FieldManager: fieldManager,
+			// We need to force the update to ensure the password
+			// gets updated in all cases with server-side apply
+			Force: true,
+		}
+	}
 
-	} else if !k8serr.IsNotFound(err) {
-		return err
-	}
-	argoSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: argoSecretName,
+	argoSecret.WithData(
+		map[string][]byte{
+			"admin.password":      pwHashBytes,
+			"admin.passwordMtime": []byte(mtime),
 		},
-		Type: corev1.SecretTypeOpaque,
-		StringData: map[string]string{
-			"admin.password":      pwHash,
-			"admin.passwordMtime": mtime,
-		},
-	}
-	_, err = clientset.CoreV1().Secrets(namespace).Create(ctx, argoSecret, metav1.CreateOptions{})
+	)
+	_, err = clientset.CoreV1().Secrets(namespace).Apply(ctx, argoSecret, secretApplyOpts)
 	if err != nil {
 		return err
 	}
-	klog.Infof("Created new Argo CD secret")
-	return err
+	klog.Info(infoMsg)
+	return nil
 }
 
 // CreateSSHSecret creates a new SSH key if it doesn't exist already and returns the public key
-func CreateSSHSecret(ctx context.Context, config *rest.Config, namespace string) (string, error) {
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return "", err
-	}
+func CreateSSHSecret(ctx context.Context, clientset kubernetes.Interface, namespace string) (string, error) {
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSSHSecretName, metav1.GetOptions{})
 	if err == nil {
 		publicKey := secret.Data[argoSSHPublicKey]
@@ -119,17 +115,15 @@ func CreateSSHSecret(ctx context.Context, config *rest.Config, namespace string)
 		return "", err
 	}
 	klog.Infof("Public key: %v", publicKey)
-	sshSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: argoSSHSecretName,
-		},
-		Type: corev1.SecretTypeOpaque,
-		Data: map[string][]byte{
+	sshSecret := corev1.Secret(argoSSHSecretName, namespace)
+	sshSecret.WithData(
+		map[string][]byte{
 			argoSSHPrivateKey: []byte(privateKey),
 			argoSSHPublicKey:  []byte(publicKey),
 		},
-	}
-	_, err = clientset.CoreV1().Secrets(namespace).Create(ctx, sshSecret, metav1.CreateOptions{})
+	)
+
+	_, err = clientset.CoreV1().Secrets(namespace).Apply(ctx, sshSecret, applyOpts)
 	if err != nil {
 		return publicKey, err
 	}

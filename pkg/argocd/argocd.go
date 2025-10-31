@@ -39,6 +39,11 @@ var (
 	defaultArgoRootAppName = "root"
 	defaultArgoProjectName = "syn"
 	argoAppsPathPrefix     = "manifests/apps"
+	fieldManager           = "syn.tools/steward"
+
+	applyOpts  = metav1.ApplyOptions{FieldManager: fieldManager}
+	createOpts = metav1.CreateOptions{FieldManager: fieldManager}
+	updateOpts = metav1.UpdateOptions{FieldManager: fieldManager}
 )
 
 // Apply reconciles the Argo CD deployments
@@ -64,7 +69,6 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 	}
 
 	argos, err := dynamicClient.Resource(gvr).Namespace(namespace).List(ctx, metav1.ListOptions{})
-
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}

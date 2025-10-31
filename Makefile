@@ -35,7 +35,7 @@ build: generate
 
 .PHONY: test
 test: generate
-	$(GOTEST) -v ./...
+	$(GOTEST) -cover -v ./...
 
 .PHONY: clean
 clean:

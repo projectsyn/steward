@@ -81,28 +81,28 @@ func (a *Agent) Run(ctx context.Context) error {
 
 	ticker := time.NewTicker(1 * time.Minute)
 
-	a.registerCluster(ctx, config, apiClient)
+	a.registerCluster(ctx, config, client, apiClient)
 
 	for {
 		select {
 		case <-ticker.C:
-			a.registerCluster(ctx, config, apiClient)
+			a.registerCluster(ctx, config, client, apiClient)
 		case <-ctx.Done():
 			return nil
 		}
 	}
 }
 
-func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, apiClient *api.Client) {
+func (a *Agent) registerCluster(ctx context.Context, config *rest.Config, clientset *kubernetes.Clientset, apiClient *api.Client) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	publicKey, err := argocd.CreateSSHSecret(ctx, config, a.Namespace)
+	publicKey, err := argocd.CreateSSHSecret(ctx, clientset, a.Namespace)
 	if err != nil {
 		klog.Errorf("Error creating SSH secret: %v", err)
 		return
 	}
-	if err := argocd.CreateArgoSecret(ctx, config, a.Namespace, a.Token); err != nil {
+	if err := argocd.CreateArgoSecret(ctx, clientset, a.Namespace, a.Token); err != nil {
 		klog.Errorf("Error creating Argo CD secret: %v", err)
 		return
 	}
