@@ -101,7 +101,10 @@ func CreateArgoSecret(ctx context.Context, clientset kubernetes.Interface, names
 	return nil
 }
 
-func createRepoSecret(ctx context.Context, cluster *api.Cluster, clientset *kubernetes.Clientset, namespace string) error {
+func createRepoSecret(ctx context.Context, cluster *api.Cluster, clientset kubernetes.Interface, namespace string) error {
+	if cluster == nil {
+		return fmt.Errorf("no cluster passed to createRepoSecret")
+	}
 	if cluster.GitRepo == nil || cluster.GitRepo.Url == nil {
 		return fmt.Errorf("no git repo information received from API for cluster '%s'", cluster.Id)
 	}
@@ -137,6 +140,9 @@ func createRepoSecret(ctx context.Context, cluster *api.Cluster, clientset *kube
 	sshSecret, err := corev1.ExtractSecret(sshSecretObj, fieldManager)
 	if err != nil {
 		return err
+	}
+	if sshSecret.Data == nil {
+		sshSecret.Data = make(map[string][]byte)
 	}
 	sshSecret.Data["url"] = []byte(gitURL.String())
 

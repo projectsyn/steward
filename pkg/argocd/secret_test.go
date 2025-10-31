@@ -2,6 +2,7 @@ package argocd
 
 import (
 	"context"
+	"net/url"
 	"testing"
 	"time"
 
@@ -13,6 +14,8 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/projectsyn/lieutenant-api/pkg/api"
 )
 
 func TestCreateArgoSecretCreate(t *testing.T) {
@@ -168,6 +171,48 @@ func TestCreateArgoClusterSecretUpdate(t *testing.T) {
 	}
 }
 
+func makeCluster(t *testing.T, cid, repoUrl string) *api.Cluster {
+
+	apiId := api.Id(cid)
+	clusterId := api.ClusterId{Id: &apiId}
+	props := api.ClusterProperties{
+		GitRepo: &api.GitRepo{
+			Url: &repoUrl,
+		},
+	}
+	return &api.Cluster{
+		ClusterId:         clusterId,
+		ClusterProperties: props,
+	}
+}
+
+func TestCreateRepoSecret(t *testing.T) {
+	sshSecret := makeSSHSecret("thepubkey")
+	fakeClient := fake.NewClientset(sshSecret)
+	ctx := t.Context()
+
+	cluster := makeCluster(t, "c-test-1234", "https://git.syn.tools/cluster-catalog.git")
+	repoUrl, err := url.Parse(*cluster.GitRepo.Url)
+	require.NoError(t, err)
+
+	err = createRepoSecret(ctx, cluster, fakeClient, "syn")
+	require.NoError(t, err)
+
+	repoSecret, err := fakeClient.CoreV1().Secrets("syn").Get(ctx, argoRepoSecretName, metav1.GetOptions{})
+	require.NoError(t, err)
+
+	assert.Equal(
+		t,
+		map[string]string{
+			"argocd.argoproj.io/secret-type": "repository",
+		},
+		repoSecret.ObjectMeta.Labels,
+	)
+
+	assert.Equal(t, "git", string(repoSecret.Data["type"]))
+	assert.Equal(t, repoUrl.String(), string(repoSecret.Data["url"]))
+}
+
 func TestCreateSSHSecret(t *testing.T) {
 	fakeClient := fake.NewClientset()
 
@@ -177,20 +222,11 @@ func TestCreateSSHSecret(t *testing.T) {
 	require.NoError(t, err)
 
 	sshSecret := validateSSHSecret(t, ctx, fakeClient, pubkey)
-
 	assert.NotEmpty(t, sshSecret.Data[argoSSHPrivateKey])
 }
 
 func TestCreateSSHSecretNoUpdate(t *testing.T) {
-	sshSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      argoSSHSecretName,
-			Namespace: "syn",
-		},
-		Data: map[string][]byte{
-			argoSSHPublicKey: []byte("thepubkey"),
-		},
-	}
+	sshSecret := makeSSHSecret("thepubkey")
 	fakeClient := fake.NewClientset(sshSecret)
 
 	ctx := t.Context()
@@ -214,6 +250,18 @@ func validateMtime(t *testing.T, secretMtime string) {
 	parsed, err := time.Parse(time.RFC3339, string(secretMtime))
 	assert.NoError(t, err)
 	assert.True(t, time.Now().Sub(parsed) < 5*time.Second)
+}
+
+func makeSSHSecret(pubkey string) *corev1.Secret {
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      argoSSHSecretName,
+			Namespace: "syn",
+		},
+		Data: map[string][]byte{
+			argoSSHPublicKey: []byte(pubkey),
+		},
+	}
 }
 
 func validateSSHSecret(t *testing.T, ctx context.Context, fakeClient *fake.Clientset, pubkey string) *corev1.Secret {
