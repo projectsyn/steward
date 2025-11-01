@@ -6,7 +6,7 @@ toolchain go1.25.3
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
-	github.com/oapi-codegen/oapi-codegen/v2 v2.5.0
+	github.com/oapi-codegen/oapi-codegen/v2 v2.5.1
 	github.com/projectsyn/lieutenant-api v0.12.2
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/multierr v1.11.0
