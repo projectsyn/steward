@@ -7,10 +7,13 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
+	"net/url"
 	"time"
 
 	k8serr "k8s.io/apimachinery/pkg/api/errors"
 
+	"github.com/projectsyn/lieutenant-api/pkg/api"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/client-go/kubernetes"
@@ -98,6 +101,60 @@ func CreateArgoSecret(ctx context.Context, clientset kubernetes.Interface, names
 	return nil
 }
 
+func createRepoSecret(ctx context.Context, cluster *api.Cluster, clientset kubernetes.Interface, namespace string) error {
+	if cluster == nil {
+		return fmt.Errorf("no cluster passed to createRepoSecret")
+	}
+	if cluster.GitRepo == nil || cluster.GitRepo.Url == nil {
+		return fmt.Errorf("no git repo information received from API for cluster '%s'", cluster.Id)
+	}
+	gitURL, err := url.Parse(*cluster.GitRepo.Url)
+	if err != nil {
+		return err
+	}
+
+	repoSecret := corev1.Secret(argoRepoSecretName, namespace)
+	repoSecret.WithLabels(
+		map[string]string{
+			"argocd.argoproj.io/secret-type": "repository",
+		},
+	)
+	repoSecret.WithData(
+		map[string][]byte{
+			"type": []byte("git"),
+			"url":  []byte(gitURL.String()),
+		},
+	)
+
+	_, err = clientset.CoreV1().Secrets(namespace).Apply(ctx, repoSecret, applyOpts)
+	if err != nil {
+		return err
+	}
+	klog.Infof("Created new Repo secret")
+
+	// Patch credential secret to also map to the URL
+	sshSecretObj, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSSHSecretName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	sshSecret, err := corev1.ExtractSecret(sshSecretObj, fieldManager)
+	if err != nil {
+		return err
+	}
+	if sshSecret.Data == nil {
+		sshSecret.Data = make(map[string][]byte)
+	}
+	sshSecret.Data["url"] = []byte(gitURL.String())
+
+	_, err = clientset.CoreV1().Secrets(namespace).Apply(ctx, sshSecret, applyOpts)
+	if err != nil {
+		return err
+	}
+
+	klog.Infof("Updated SSH secret")
+	return nil
+}
+
 // CreateSSHSecret creates a new SSH key if it doesn't exist already and returns the public key
 func CreateSSHSecret(ctx context.Context, clientset kubernetes.Interface, namespace string) (string, error) {
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(ctx, argoSSHSecretName, metav1.GetOptions{})
@@ -116,6 +173,11 @@ func CreateSSHSecret(ctx context.Context, clientset kubernetes.Interface, namesp
 	}
 	klog.Infof("Public key: %v", publicKey)
 	sshSecret := corev1.Secret(argoSSHSecretName, namespace)
+	sshSecret.WithLabels(
+		map[string]string{
+			"argocd.argoproj.io/secret-type": "repo-creds",
+		},
+	)
 	sshSecret.WithData(
 		map[string][]byte{
 			argoSSHPrivateKey: []byte(privateKey),
