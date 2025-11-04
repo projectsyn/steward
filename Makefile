@@ -44,7 +44,7 @@ clean:
 
 .PHONY: docker
 docker:
-	docker build -t $(IMAGE_NAME) .
+	docker build --build-arg VERSION=$(VERSION) -t $(IMAGE_NAME) .
 	@echo built image $(IMAGE_NAME)
 
 .PHONY: docs-serve

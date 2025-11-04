@@ -1,5 +1,7 @@
 FROM docker.io/golang:1.25 as build
 
+ARG VERSION
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
