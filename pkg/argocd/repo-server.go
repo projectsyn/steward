@@ -22,13 +22,11 @@ func createRepoServerDeployment(ctx context.Context, clientset *kubernetes.Clien
 	for k, v := range argoLabels {
 		labels[k] = v
 	}
-	annotations := argoAnnotations
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   namespace,
-			Labels:      labels,
-			Annotations: argoAnnotations,
+			Name:      name,
+			Namespace: namespace,
+			Labels:    labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
@@ -46,10 +44,9 @@ func createRepoServerDeployment(ctx context.Context, clientset *kubernetes.Clien
 	}
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   namespace,
-			Labels:      labels,
-			Annotations: annotations,
+			Name:      name,
+			Namespace: namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
