@@ -20,7 +20,6 @@ import (
 var (
 	argoLabels = map[string]string{
 		"app.kubernetes.io/part-of":   "argocd",
-		"argocd.argoproj.io/instance": "argocd",
 		"steward.syn.tools/bootstrap": "true",
 	}
 	argoAnnotations = map[string]string{
@@ -78,6 +77,10 @@ func Apply(ctx context.Context, config *rest.Config, namespace, operatorNamespac
 		err = fixArgoOperatorDeadlock(ctx, clientset, config, namespace, operatorNamespace)
 		if err != nil {
 			return fmt.Errorf("could not fix argocd operator deadlock: %w", err)
+		}
+		err = deleteBootstrapArgoCD(ctx, clientset, namespace)
+		if err != nil {
+			return fmt.Errorf("could not delete bootstrap argocd: %w", err)
 		}
 		return nil
 	}
@@ -200,6 +203,41 @@ func fixArgoOperatorDeadlock(ctx context.Context, clientset *kubernetes.Clientse
 	}
 
 	return multierr.Combine(errors...)
+}
+
+func deleteBootstrapArgoCD(ctx context.Context, clientset *kubernetes.Clientset, namespace string) error {
+	klog.Info("Deleting bootstrap ArgoCD components (if there are any left)...")
+
+	errs := []error{}
+	err := clientset.AppsV1().Deployments(namespace).DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{
+		LabelSelector: "steward.syn.tools/bootstrap=true",
+	})
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	err = clientset.AppsV1().StatefulSets(namespace).DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{
+		LabelSelector: "steward.syn.tools/bootstrap=true",
+	})
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	services, err := clientset.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: "steward.syn.tools/bootstrap=true",
+	})
+	if err == nil {
+		for _, svc := range services.Items {
+			err = clientset.CoreV1().Services(namespace).Delete(ctx, svc.Name, metav1.DeleteOptions{})
+			if err != nil && !errors.IsNotFound(err) {
+				errs = append(errs, err)
+			}
+		}
+	} else {
+		errs = append(errs, err)
+	}
+
+	return multierr.Combine(errs...)
 }
 
 func applyAdditionalRootApps(ctx context.Context, clientset *kubernetes.Clientset, config *rest.Config, namespace, additionalRootAppsConfigMapName string, cluster *api.Cluster) error {
