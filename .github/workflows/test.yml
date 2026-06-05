@@ -13,7 +13,7 @@ jobs:
         fetch-depth: "0"
     - uses: actions/setup-go@v6
       with:
-        go-version: '>=1.25.0'
+        go-version-file: 'go.mod'
     - name: Go generate
       run: make generate
     - name: Check for uncommited differences
