@@ -12,7 +12,7 @@ jobs:
     env:
       IMAGE: docker.io/${{ github.repository }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       with:
         fetch-depth: "0"
     - name: Set version latest
@@ -35,7 +35,7 @@ jobs:
     - name: Build changelog from PRs with labels
       if: startsWith(github.ref, 'refs/tags/v')
       id: build_changelog
-      uses: mikepenz/release-changelog-builder-action@v6
+      uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6
       with:
         configuration: ".github/changelog-configuration.json"
         # PreReleases still get a changelog, but the next full release gets a diff since the last full release,
@@ -46,7 +46,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: actions/create-release@v1
+      uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1
       with:
         tag_name: ${{ github.ref }}
         release_name: ${{ github.ref }}
