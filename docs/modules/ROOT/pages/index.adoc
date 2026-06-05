@@ -10,8 +10,10 @@ Also see the xref:syn:SDDs:0009-steward-cluster-agent.adoc[SDD 0009 - Steward Cl
 
 The Steward cluster agent is the first part of Project Syn that's installed on a new cluster to manage it. It connects to the xref:lieutenant-api::home.adoc[Lieutenant API] to receive the necessary configuration and to report back the cluster state.
 
-This is done once per minute. It also checks on each run if the Argo CD components are deployed (exist) and bootstraps them if they don't exist.
+This is done once per minute.
+It also checks on each run if the Argo CD components are deployed (`ArgoCD` custom resource or components exist) and bootstraps them if they don't exist.
 
+Additionally, Steward will delete the bootstrap Argo CD components (labeled `steward.syn.tools/bootstrap=true`) when it sees that an ArgoCD operator `ArgoCD` custom resource exists.
 
 == API Communication
 

@@ -22,13 +22,11 @@ func createServerDeployment(ctx context.Context, clientset *kubernetes.Clientset
 	for k, v := range argoLabels {
 		labels[k] = v
 	}
-	annotations := argoAnnotations
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   namespace,
-			Labels:      labels,
-			Annotations: annotations,
+			Name:      name,
+			Namespace: namespace,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
