@@ -1,6 +1,7 @@
 {
   "extends": [
-    "config:base"
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
   ],
   "postUpdateOptions": [
     "gomodTidy"
@@ -12,6 +13,10 @@
     {
       "packagePatterns": ["^k8s.io", "^sigs.k8s.io"],
       "enabled": false
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions dependencies"
     }
   ],
   "regexManagers": [
